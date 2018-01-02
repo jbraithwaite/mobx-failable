@@ -1,4 +1,5 @@
 import {Enum} from 'typescript-string-enums';
+
 import {Lazy} from './lazy';
 
 /**

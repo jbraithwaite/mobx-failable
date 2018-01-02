@@ -1,4 +1,5 @@
 import {action, computed, observable} from 'mobx';
+
 import {Future} from './future';
 import {Lazy} from './lazy';
 
@@ -24,24 +25,34 @@ export class Failable<T> implements Future<T> {
   /**
    * Indicates if this Failable is a success.
    */
-  @computed get isSuccess(): boolean { return this.state === State.success; }
+  @computed
+  get isSuccess(): boolean {
+    return this.state === State.success;
+  }
 
   /**
    * Indicates if this Failable is a failure.
    */
-  @computed get isFailure(): boolean { return this.state === State.failure; }
+  @computed
+  get isFailure(): boolean {
+    return this.state === State.failure;
+  }
 
   /**
    * Indicates if this Failable is pending.
    */
-  @computed get isPending(): boolean { return this.state === State.pending; }
+  @computed
+  get isPending(): boolean {
+    return this.state === State.pending;
+  }
 
   /**
    * Sets this Failable to a success.
    * @param data The value associated with the success.
    * @returns This, enabling chaining.
    */
-  @action.bound success(data: T): this {
+  @action.bound
+  success(data: T): this {
     this.state = State.success;
     this.data = data;
     this.didBecomeSuccess(data);
@@ -52,14 +63,17 @@ export class Failable<T> implements Future<T> {
    * A lifecycle method that is invoked after this Failable becomes a success.
    * This can be overridden in a subclass.
    */
-  protected didBecomeSuccess(_data: T): void { /* */ }
+  protected didBecomeSuccess(_data: T): void {
+    /* */
+  }
 
   /**
    * Sets this Failable to a failure.
    * @param error The error associated with the failure.
    * @returns This, enabling chaining.
    */
-  @action.bound failure(error: Error): this {
+  @action.bound
+  failure(error: Error): this {
     this.state = State.failure;
     this.data = error;
     this.didBecomeFailure(error);
@@ -70,13 +84,16 @@ export class Failable<T> implements Future<T> {
    * A lifecycle method that is invoked after this Failable becomes a success.
    * This can be overridden in a subclass.
    */
-  protected didBecomeFailure(_error: Error): void { /* */ }
+  protected didBecomeFailure(_error: Error): void {
+    /* */
+  }
 
   /**
    * Sets this Failable to pending.
    * @returns This, enabling chaining.
    */
-  @action.bound pending(): this {
+  @action.bound
+  pending(): this {
     this.state = State.pending;
     this.data = undefined;
     this.didBecomePending();
@@ -87,7 +104,9 @@ export class Failable<T> implements Future<T> {
    * A lifecycle method that is invoked after this Failable becomes pending.
    * This can be overridden in a subclass.
    */
-  protected didBecomePending(): void { /* */ }
+  protected didBecomePending(): void {
+    /* */
+  }
 
   /**
    * Invokes one of the provided callbacks that corresponds this Failable's
@@ -100,9 +119,12 @@ export class Failable<T> implements Future<T> {
     const {success, failure, pending} = options;
 
     switch (this.state) {
-      case State.success: return success(data as T);
-      case State.failure: return failure(data as Error);
-      case State.pending: return pending();
+      case State.success:
+        return success(data as T);
+      case State.failure:
+        return failure(data as Error);
+      case State.pending:
+        return pending();
     }
   }
 

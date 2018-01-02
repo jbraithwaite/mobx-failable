@@ -1,5 +1,6 @@
 import {action, computed, observable} from 'mobx';
 import {Enum} from 'typescript-string-enums';
+
 import {Future} from './future';
 import {Lazy} from './lazy';
 
@@ -23,21 +24,24 @@ export class Loadable<T> implements Future<T> {
   /**
    * Indicates if this Loadable is a success or reloading.
    */
-  @computed get isSuccess(): boolean {
+  @computed
+  get isSuccess(): boolean {
     return this.state === State.success || this.state === State.reloading;
   }
 
   /**
    * Indicates if this Loadable is a failure or retrying.
    */
-  @computed get isFailure(): boolean {
+  @computed
+  get isFailure(): boolean {
     return this.state === State.failure || this.state === State.retrying;
   }
 
   /**
    * Indicates if this Loadable is empty or pending.
    */
-  @computed get isPending(): boolean {
+  @computed
+  get isPending(): boolean {
     return this.state === State.empty || this.state === State.pending;
   }
 
@@ -45,7 +49,8 @@ export class Loadable<T> implements Future<T> {
    * Indicates if this Loadable is the process of loading, which happens in one
    * of the following three states: reloading, retrying, and pending.
    */
-  @computed get isLoading(): boolean {
+  @computed
+  get isLoading(): boolean {
     return (
       this.state === State.reloading ||
       this.state === State.retrying ||
@@ -58,7 +63,8 @@ export class Loadable<T> implements Future<T> {
    * @param data The value associated with the success.
    * @returns This, enabling chaining.
    */
-  @action.bound success(data: T): this {
+  @action.bound
+  success(data: T): this {
     this.state = State.success;
     this.data = data;
     this.didBecomeSuccess(data);
@@ -69,14 +75,17 @@ export class Loadable<T> implements Future<T> {
    * A lifecycle method that is invoked after this Loadable becomes a success.
    * This can be overridden in a subclass.
    */
-  protected didBecomeSuccess(_data: T): void { /* */ }
+  protected didBecomeSuccess(_data: T): void {
+    /* */
+  }
 
   /**
    * Sets this Loadable to a failure.
    * @param error The error associated with the failure.
    * @returns This, enabling chaining.
    */
-  @action.bound failure(error: Error): this {
+  @action.bound
+  failure(error: Error): this {
     this.state = State.failure;
     this.data = error;
     this.didBecomeFailure(error);
@@ -87,13 +96,16 @@ export class Loadable<T> implements Future<T> {
    * A lifecycle method that is invoked after this Loadable becomes a success.
    * This can be overridden in a subclass.
    */
-  protected didBecomeFailure(_error: Error): void { /* */ }
+  protected didBecomeFailure(_error: Error): void {
+    /* */
+  }
 
   /**
    * An alias to `loading`. Unlike standard Future behavior, calling this does
    * not clear existing data.
    */
-  @action.bound pending(): this {
+  @action.bound
+  pending(): this {
     return this.loading();
   }
 
@@ -105,7 +117,8 @@ export class Loadable<T> implements Future<T> {
    * happens.
    * @returns This, enabling chaining.
    */
-  @action.bound loading(): this {
+  @action.bound
+  loading(): this {
     switch (this.state) {
       case State.empty:
         this.state = State.pending;
@@ -128,7 +141,9 @@ export class Loadable<T> implements Future<T> {
    * A lifecycle method that is invoked after this Loadable becomes a loading
    * state. This can be overridden in a subclass.
    */
-  protected didBecomeLoading(): void { /* */ }
+  protected didBecomeLoading(): void {
+    /* */
+  }
 
   /**
    * Invokes one of the provided callbacks that corresponds this Loadable's
