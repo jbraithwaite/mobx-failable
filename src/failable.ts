@@ -1,5 +1,6 @@
 import {action, computed, observable} from 'mobx';
 
+import {accept, failureOr, successOr} from './extensions';
 import {Future} from './future';
 import {Lazy} from './lazy';
 
@@ -137,8 +138,7 @@ export class Failable<T> implements Future<T> {
    * @returns This, enabling chaining.
    */
   accept(promise: PromiseLike<T>): this {
-    this.pending();
-    Promise.resolve(promise).then(this.success, this.failure);
+    accept(this, promise);
     return this;
   }
 
@@ -149,11 +149,7 @@ export class Failable<T> implements Future<T> {
    * @returns This Future's success value or the provided default value
    */
   successOr<U>(defaultValue: Lazy<U>): T | U {
-    return this.match({
-      success: v => v,
-      failure: () => Lazy.force(defaultValue),
-      pending: () => Lazy.force(defaultValue),
-    });
+    return successOr(this, defaultValue);
   }
 
   /**
@@ -163,10 +159,6 @@ export class Failable<T> implements Future<T> {
    * @returns this Failable's failure error or the provided default value
    */
   failureOr<U>(defaultValue: Lazy<U>): Error | U {
-    return this.match({
-      success: () => Lazy.force(defaultValue),
-      failure: e => e,
-      pending: () => Lazy.force(defaultValue),
-    });
+    return failureOr(this, defaultValue);
   }
 }
