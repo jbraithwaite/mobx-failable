@@ -99,6 +99,36 @@ export namespace Future {
     failure: (error: Error) => B;
     pending: () => C;
   }
+
+  /**
+   * DeriveOptions is similar to MatchOptions, except only one callback is
+   * required. The return value of any callback is accordingly re-wrapped in
+   * another Future.
+   */
+  export type DeriveOptions<From, To> =
+    | DeriveOptions.AtLeastSuccess<From, To>
+    | DeriveOptions.AtLeastFailure<From, To>
+    | DeriveOptions.AtLeastPending<From, To>;
+
+  export namespace DeriveOptions {
+    export interface AtLeastSuccess<From, To> {
+      success: (data: From) => To;
+      failure?: (error: Error) => To;
+      pending?: () => To;
+    }
+
+    export interface AtLeastFailure<From, To> {
+      success?: (data: From) => To;
+      failure: (error: Error) => To;
+      pending?: () => To;
+    }
+
+    export interface AtLeastPending<From, To> {
+      success?: (data: From) => To;
+      failure?: (error: Error) => To;
+      pending: () => To;
+    }
+  }
 }
 
 /**
