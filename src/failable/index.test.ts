@@ -1,23 +1,35 @@
 import {computed, useStrict, when} from 'mobx';
 
-import {Failable as F} from './failable';
-import {Future} from './future';
+import {Failable as F} from '.';
+import {Future} from '../future';
 
 useStrict(true);
 
 describe('Failable (mutable)', () => {
   class Failable<T> extends F<T> {
-    @computed get internalData(): T | Error | undefined { return this.data; }
-    @computed get internalState(): Future.State { return this.state; }
+    @computed
+    get internalData(): T | Error | undefined {
+      return this.data;
+    }
+    @computed
+    get internalState(): Future.State {
+      return this.state;
+    }
 
     calledSuccess = false;
-    didBecomeSuccess(_: T) { this.calledSuccess = true; }
+    didBecomeSuccess(_: T) {
+      this.calledSuccess = true;
+    }
 
     calledFailure = false;
-    didBecomeFailure(_: Error) { this.calledFailure = true; }
+    didBecomeFailure(_: Error) {
+      this.calledFailure = true;
+    }
 
     calledPending = false;
-    didBecomePending() { this.calledPending = true; }
+    didBecomePending() {
+      this.calledPending = true;
+    }
   }
 
   const successValue = 3;
@@ -41,7 +53,7 @@ describe('Failable (mutable)', () => {
 
   describe('success', () => {
     let f: Failable<number>;
-    beforeEach(() => f = make.success());
+    beforeEach(() => (f = make.success()));
 
     it('sets the internal state to success', () => {
       expect(f.internalState).toEqual(Future.State.success);
@@ -60,7 +72,7 @@ describe('Failable (mutable)', () => {
 
   describe('failure', () => {
     let f: Failable<number>;
-    beforeEach(() => f = make.failure());
+    beforeEach(() => (f = make.failure()));
 
     it('sets the internal state to failure', () => {
       expect(f.internalState).toEqual(Future.State.failure);
@@ -79,7 +91,7 @@ describe('Failable (mutable)', () => {
 
   describe('pending', () => {
     let f: Failable<number>;
-    beforeEach(() => f = make.pending());
+    beforeEach(() => (f = make.pending()));
 
     it('sets the internal state to pending', () => {
       expect(f.internalState).toEqual(Future.State.pending);
@@ -168,14 +180,18 @@ describe('Failable (mutable)', () => {
   });
 
   describe('accept', () => {
-    const never = new Promise<never>((_resolve, _reject) => {/* */});
+    const never = new Promise<never>((_resolve, _reject) => {
+      /* */
+    });
     const resolved = Promise.resolve(successValue);
     const rejected = Promise.reject(failureValue);
     // Suppress PromiseRejectionHandledWarning in node:
-    rejected.catch(() => {/* */});
+    rejected.catch(() => {
+      /* */
+    });
 
     let f: Failable<number>;
-    beforeEach(() => f = new Failable<number>());
+    beforeEach(() => (f = new Failable<number>()));
 
     it('first transitions to pending', () => {
       f.success(successValue);

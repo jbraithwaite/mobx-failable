@@ -1,8 +1,9 @@
 import {action, computed, observable} from 'mobx';
 
-import {accept, failureOr, successOr} from './extensions';
-import {Future} from './future';
-import {Lazy} from './lazy';
+import {accept, failureOr, successOr} from '../extensions';
+import {Future} from '../future';
+import {Lazy} from '../lazy';
+import {match} from './match';
 
 const State = Future.State;
 
@@ -116,17 +117,7 @@ export class Failable<T> implements Future<T> {
    * @returns The return value of whichever callback was selected.
    */
   match<A, B, C>(options: Future.MatchOptions<T, A, B, C>): A | B | C {
-    const data = this.data;
-    const {success, failure, pending} = options;
-
-    switch (this.state) {
-      case State.success:
-        return success(data as T);
-      case State.failure:
-        return failure(data as Error);
-      case State.pending:
-        return pending();
-    }
+    return match(this.state, this.data, options);
   }
 
   /**
