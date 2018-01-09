@@ -1,4 +1,4 @@
-import {action, computed, IReactionDisposer, observable, reaction} from 'mobx';
+import {action, autorun, computed, IReactionDisposer, observable} from 'mobx';
 
 import {failureOr, successOr} from '../extensions';
 import {Future, ReadonlyFuture} from '../future';
@@ -18,29 +18,54 @@ export class DerivedFailable<T, To> implements ReadonlyFuture<To> {
     protected options: Future.DeriveOptions<T, To>,
   ) {
     this.underlying = underlying;
-    this.transformation = reaction(() => this.underlying, this.transform);
+    this.transformation = autorun('transformation', () => this.transform());
+    this.transform();
   }
 
-  protected transform(underlying: ReadonlyFuture<T>) {
+  protected transform() {
     const {success, failure, pending} = this.options;
 
-    underlying.match({
-      success: value => success && this.transformWith(success, value),
-      failure: error => failure && this.transformWith(failure, error),
-      pending: () => pending && this.transformWith(pending, undefined),
+    this.underlying.match({
+      success: value => {
+        success
+          ? this.transformWith(success, value)
+          : /**
+             * This branch only gets taken when `DeriveOptions` does not have a
+             * success callback. At this point the TypeScript compiler cannot
+             * know or prove that type `To` =:= `T`, so the `value` is cast to
+             * `never` to ensure that an unhandled success is still mirrored.
+             */
+            this.transitionTo(State.success, value as never);
+      },
+      failure: error => {
+        failure
+          ? this.transformWith(failure, error)
+          : this.transitionTo(State.failure, error);
+      },
+      pending: () => {
+        pending
+          ? this.transformWith(pending, undefined)
+          : this.transitionTo(State.pending, undefined);
+      },
     });
   }
 
-  @action
   protected transformWith<U>(f: (x: U) => To, v: U): void {
     try {
       const result = f(v);
-      this.data = result;
-      this.state = State.success;
+      this.transitionTo(State.success, result);
     } catch (e) {
-      this.data = e;
-      this.state = State.failure;
+      this.transitionTo(State.failure, e);
     }
+  }
+
+  @action
+  protected transitionTo(
+    state: Future.State,
+    data: To | Error | undefined,
+  ): void {
+    this.state = state;
+    this.data = data;
   }
 
   /**
