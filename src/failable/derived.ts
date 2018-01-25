@@ -3,6 +3,7 @@ import {action, autorun, computed, IReactionDisposer, observable} from 'mobx';
 import {failureOr, successOr} from '../extensions';
 import {Future, ReadonlyFuture} from '../future';
 import {Lazy} from '../lazy';
+import {derive, map, rescue} from './extensions';
 import {match} from './match';
 
 const State = Future.State;
@@ -120,5 +121,48 @@ export class DerivedFailable<T, To> implements ReadonlyFuture<To> {
    */
   failureOr<U>(defaultValue: Lazy<U>): Error | U {
     return failureOr(this, defaultValue);
+  }
+
+  /**
+   * Derives a ReadonlyFuture that syncs with this Failable using the given
+   * options. For each transform function in the options, returning a value will
+   * turn the derivation into a success with that value, whereas throwing an
+   * error will turn it into a failure with that error value.
+   *
+   * The resulting derivation updates as the Failable it is derived from
+   * updates and changes state.
+   * @param options An object of transform functions to be invoked according
+   * to the state
+   * @returns A derived ReadonlyFuture
+   */
+  derive<U>(options: Future.DeriveOptions<To, U>): ReadonlyFuture<U> {
+    return derive(this, options);
+  }
+
+  /**
+   * Creates a derived ReadonlyFuture that syncs with this Failable, except
+   * success values are first transformed using the provided function `f`. When
+   * the provided function throws, the derived ReadonlyFuture becomes a failure.
+   *
+   * This is a shorthand of calling `derive` with only a `success` function.
+   * @param f The success transformation function
+   * @returns A derived ReadonlyFuture
+   */
+  map<U>(f: (value: To) => U): ReadonlyFuture<U> {
+    return map(this, f);
+  }
+
+  /**
+   * Creates a derived ReadonlyFuture that syncs with this Failable, except
+   * error values are first transformed using the provided function `f`. When
+   * the provided function returns, the derived ReadonlyFuture becomes a
+   * success. When it throws, the derivation becomes a failure.
+   *
+   * This is a shorthand of calling `derive` with only a `failure` function.
+   * @param f The failure transformation function
+   * @returns A derived ReadonlyFuture
+   */
+  rescue(f: (error: Error) => To): ReadonlyFuture<To> {
+    return rescue(this, f);
   }
 }
