@@ -3,6 +3,7 @@ import {computed, useStrict, when} from 'mobx';
 import {Failable as F} from '.';
 import {Future} from '../future';
 import {expose} from '../internal';
+import {SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG} from 'constants';
 
 useStrict(true);
 
@@ -274,6 +275,50 @@ describe('Failable (mutable)', () => {
 
       expect(result).not.toEqual(failureValue);
       expect(result).toEqual(fallback);
+    });
+  });
+
+  describe('map', () => {
+    it('transforms a success value into another value', () => {
+      const f = expose(make.success());
+      const g = expose(f.map(x => x + 1));
+
+      expect(g.data).toBe(successValue + 1);
+      expect(g.state).toBe(f.state);
+    });
+
+    it('transforms a success value into an error', () => {
+      const f = make.success();
+      const g = expose(
+        f.map(() => {
+          throw failureValue;
+        }),
+      );
+
+      expect(g.data).toBe(failureValue);
+      expect(g.state).toBe(Future.State.failure);
+    });
+  });
+
+  describe('rescue', () => {
+    it('transforms an error value into a success value', () => {
+      const f = make.failure();
+      const g = expose(f.rescue(e => successValue));
+
+      expect(g.data).toBe(successValue);
+      expect(g.state).toBe(Future.State.success);
+    });
+
+    it('transforms an error value into a another error value', () => {
+      const f = expose(make.failure());
+      const g = expose(
+        f.rescue(e => {
+          throw failureValue;
+        }),
+      );
+
+      expect(g.data).toBe(failureValue);
+      expect(g.state).toBe(f.state);
     });
   });
 });
