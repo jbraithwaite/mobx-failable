@@ -2,6 +2,7 @@ import {computed, useStrict, when} from 'mobx';
 
 import {Failable} from '.';
 import {Future, ReadonlyFuture} from '../future';
+import {expose} from '../internal';
 import {DerivedFailable} from './derived';
 
 useStrict(true);
@@ -19,16 +20,11 @@ const make: FailableFactory<number> = {
   failure: () => new Failable<number>().failure(failureValue),
 };
 
-type ExposedFailable<T, To> = DerivedFailable<T, To> & {
-  data: To | Error | undefined;
-  state: Future.State;
-};
-
 function derive<T, To>(
   f: ReadonlyFuture<T>,
   options: Future.DeriveOptions<T, To>,
-): ExposedFailable<T, To> {
-  return new DerivedFailable(f, options) as ExposedFailable<T, To>;
+) {
+  return expose(new DerivedFailable(f, options));
 }
 
 describe('DerivedFailable', () => {

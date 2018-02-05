@@ -2,20 +2,12 @@ import {computed, useStrict, when} from 'mobx';
 
 import {Failable as F} from '.';
 import {Future} from '../future';
+import {expose} from '../internal';
 
 useStrict(true);
 
 describe('Failable (mutable)', () => {
   class Failable<T> extends F<T> {
-    @computed
-    get internalData(): T | Error | undefined {
-      return this.data;
-    }
-    @computed
-    get internalState(): Future.State {
-      return this.state;
-    }
-
     calledSuccess = false;
     didBecomeSuccess(_: T) {
       this.calledSuccess = true;
@@ -44,26 +36,29 @@ describe('Failable (mutable)', () => {
   };
 
   describe('constructor', () => {
-    const f = new Failable<void>();
+    const f = expose<void, Failable<void>>(new Failable<void>());
 
     it('initializes the state as pending', () => {
-      expect(f.internalState).toEqual(Future.State.pending);
+      expect(f.state).toEqual(Future.State.pending);
     });
   });
 
   describe('success', () => {
-    let f: Failable<number>;
-    beforeEach(() => (f = make.success()));
-
     it('sets the internal state to success', () => {
-      expect(f.internalState).toEqual(Future.State.success);
+      const f = expose(make.success());
+
+      expect(f.state).toEqual(Future.State.success);
     });
 
     it('sets the internal data to the given value', () => {
-      expect(f.internalData).toEqual(successValue);
+      const f = expose(make.success());
+
+      expect(f.data).toEqual(successValue);
     });
 
     it('invokes didBecomeSuccess', () => {
+      const f = expose(make.success());
+
       expect(f.calledSuccess).toBe(true);
       expect(f.calledFailure).toBe(false);
       expect(f.calledPending).toBe(false);
@@ -71,18 +66,21 @@ describe('Failable (mutable)', () => {
   });
 
   describe('failure', () => {
-    let f: Failable<number>;
-    beforeEach(() => (f = make.failure()));
-
     it('sets the internal state to failure', () => {
-      expect(f.internalState).toEqual(Future.State.failure);
+      const f = expose(make.failure());
+
+      expect(f.state).toEqual(Future.State.failure);
     });
 
     it('sets the internal data to the given value', () => {
-      expect(f.internalData).toEqual(failureValue);
+      const f = expose(make.failure());
+
+      expect(f.data).toEqual(failureValue);
     });
 
     it('invokes didBecomeFailure', () => {
+      const f = expose(make.failure());
+
       expect(f.calledSuccess).toBe(false);
       expect(f.calledFailure).toBe(true);
       expect(f.calledPending).toBe(false);
@@ -90,14 +88,15 @@ describe('Failable (mutable)', () => {
   });
 
   describe('pending', () => {
-    let f: Failable<number>;
-    beforeEach(() => (f = make.pending()));
-
     it('sets the internal state to pending', () => {
-      expect(f.internalState).toEqual(Future.State.pending);
+      const f = expose(make.pending());
+
+      expect(f.state).toEqual(Future.State.pending);
     });
 
     it('invokes didBecomePending', () => {
+      const f = expose(make.pending());
+
       expect(f.calledSuccess).toBe(false);
       expect(f.calledFailure).toBe(false);
       expect(f.calledPending).toBe(true);
@@ -190,38 +189,38 @@ describe('Failable (mutable)', () => {
       /* */
     });
 
-    let f: Failable<number>;
-    beforeEach(() => (f = new Failable<number>()));
-
     it('first transitions to pending', () => {
+      const f = expose(new Failable<number>());
       f.success(successValue);
       f.accept(never);
 
-      expect(f.internalState).toEqual(Future.State.pending);
-      expect(f.internalData).toBeUndefined();
+      expect(f.state).toEqual(Future.State.pending);
+      expect(f.data).toBeUndefined();
     });
 
     it('transitions to success when the promise is fulfilled', done => {
+      const f = expose(new Failable<number>());
       f.accept(resolved);
 
       when(
         () => !f.isPending,
         () => {
-          expect(f.internalState).toEqual(Future.State.success);
-          expect(f.internalData).toEqual(successValue);
+          expect(f.state).toEqual(Future.State.success);
+          expect(f.data).toEqual(successValue);
           done();
         },
       );
     });
 
     it('transitions to failure when the promise is rejected', done => {
+      const f = expose(new Failable<number>());
       f.accept(rejected);
 
       when(
         () => !f.isPending,
         () => {
-          expect(f.internalState).toEqual(Future.State.failure);
-          expect(f.internalData).toEqual(failureValue);
+          expect(f.state).toEqual(Future.State.failure);
+          expect(f.data).toEqual(failureValue);
           done();
         },
       );
