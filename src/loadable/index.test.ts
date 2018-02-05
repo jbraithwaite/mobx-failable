@@ -1,8 +1,8 @@
 import {computed, useStrict, when} from 'mobx';
 import {Enum} from 'typescript-string-enums';
 
-import {expose} from './internal';
-import {Loadable as L} from './loadable';
+import {Loadable as L} from '.';
+import {expose} from '../internal';
 
 useStrict(true);
 

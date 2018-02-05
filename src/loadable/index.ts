@@ -1,9 +1,9 @@
 import {action, computed, observable} from 'mobx';
 import {Enum} from 'typescript-string-enums';
 
-import {accept, failureOr, successOr} from './extensions';
-import {Future} from './future';
-import {Lazy} from './lazy';
+import {accept, failureOr, successOr} from '../extensions';
+import {Future} from '../future';
+import {Lazy} from '../lazy';
 
 /**
  * Loadable is an extension of Failable. It has six states: empty, pending,
