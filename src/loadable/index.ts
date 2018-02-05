@@ -4,6 +4,7 @@ import {Enum} from 'typescript-string-enums';
 import {accept, failureOr, successOr} from '../extensions';
 import {Future} from '../future';
 import {Lazy} from '../lazy';
+import {match} from './match';
 
 /**
  * Loadable is an extension of Failable. It has six states: empty, pending,
@@ -153,20 +154,7 @@ export class Loadable<T> implements Future<T> {
    * @returns The return value of whichever callback was selected.
    */
   match<A, B, C>(options: Loadable.MatchOptions<T, A, B, C>): A | B | C {
-    const {data, state} = this;
-    const {success, failure, pending} = options;
-
-    switch (state) {
-      case State.success:
-      case State.reloading:
-        return success(data as T, this.isLoading);
-      case State.failure:
-      case State.retrying:
-        return failure(data as Error, this.isLoading);
-      case State.empty:
-      case State.pending:
-        return pending(this.isLoading);
-    }
+    return match(this.state, this.data, this.isLoading, options);
   }
 
   /**
