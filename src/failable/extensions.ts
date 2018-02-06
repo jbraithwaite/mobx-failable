@@ -17,10 +17,10 @@ export function map<T, To>(
   });
 }
 
-export function rescue<T>(
+export function rescue<T, To>(
   future: ReadonlyFuture<T>,
-  f: (error: Error) => T,
-): ReadonlyFuture<T> {
+  f: (error: Error) => To,
+): ReadonlyFuture<To> {
   return new DerivedFailable(future, {
     failure: f,
   });

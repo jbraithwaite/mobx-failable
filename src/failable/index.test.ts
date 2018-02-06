@@ -303,9 +303,9 @@ describe('Failable (mutable)', () => {
   describe('rescue', () => {
     it('transforms an error value into a success value', () => {
       const f = make.failure();
-      const g = expose(f.rescue(e => successValue));
+      const g = expose(f.rescue(e => e.message));
 
-      expect(g.data).toBe(successValue);
+      expect(g.data).toBe(failureValue.message);
       expect(g.state).toBe(Future.State.success);
     });
 

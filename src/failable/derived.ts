@@ -162,7 +162,7 @@ export class DerivedFailable<T, To> implements ReadonlyFuture<To> {
    * @param f The failure transformation function
    * @returns A derived ReadonlyFuture
    */
-  rescue(f: (error: Error) => To): ReadonlyFuture<To> {
+  rescue<U = To>(f: (error: Error) => U): ReadonlyFuture<U> {
     return rescue(this, f);
   }
 }
