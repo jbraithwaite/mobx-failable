@@ -10,7 +10,7 @@ import {Lazy} from './lazy';
  * between these states. The read-only properties are computed and indicate the
  * current state, but for day-to-day usage, prefer the `match` method.
  */
-export interface Future<T> extends ReadonlyFuture<T> {
+export interface Future<T> {
   /**
    * Indicates if this Future is a success.
    */
@@ -132,7 +132,7 @@ export namespace Future {
 }
 
 /**
- * ReadonlyFuture is the read-only counterpart to Future.
+ * ReadonlyFuture is read-only subset of Future.
  */
 export interface ReadonlyFuture<T> {
   /**
@@ -174,3 +174,22 @@ export interface ReadonlyFuture<T> {
    */
   failureOr<U>(defaultValue: Lazy<U>): Error | U;
 }
+
+/**
+ * This is a type-level check that will never execute at runtime. It ensures
+ * that `ReadonlyFuture` is always a strict subset of `Future` by asserting
+ * that a `Future` is assignable to a `ReadonlyFuture`.
+ *
+ * If the following block stops compiling, then there is likely something wrong
+ * and incompatible with the definition of `ReadonlyFuture`.
+ */
+// tslint:disable prefer-const variable-name no-var-keyword
+if (false) {
+  // @ts-ignore
+  (() => {
+    var __future: Future<void>;
+    // @ts-ignore
+    var __readonly: ReadonlyFuture<void> = __future;
+  })();
+}
+// tslint:enable
