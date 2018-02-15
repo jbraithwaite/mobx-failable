@@ -17,7 +17,7 @@ import {match} from './match';
  */
 export class Loadable<T> implements Future<T> {
   @observable protected data: T | Error | undefined = undefined;
-  @observable protected state: Loadable.State = State.empty;
+  @observable protected state: Loadable.State = Loadable.State.empty;
 
   toString(): string {
     return `Loadable { state=${this.state}, data=${this.data} }`;
@@ -28,7 +28,10 @@ export class Loadable<T> implements Future<T> {
    */
   @computed
   get isSuccess(): boolean {
-    return this.state === State.success || this.state === State.reloading;
+    return (
+      this.state === Loadable.State.success ||
+      this.state === Loadable.State.reloading
+    );
   }
 
   /**
@@ -36,7 +39,10 @@ export class Loadable<T> implements Future<T> {
    */
   @computed
   get isFailure(): boolean {
-    return this.state === State.failure || this.state === State.retrying;
+    return (
+      this.state === Loadable.State.failure ||
+      this.state === Loadable.State.retrying
+    );
   }
 
   /**
@@ -44,7 +50,10 @@ export class Loadable<T> implements Future<T> {
    */
   @computed
   get isPending(): boolean {
-    return this.state === State.empty || this.state === State.pending;
+    return (
+      this.state === Loadable.State.empty ||
+      this.state === Loadable.State.pending
+    );
   }
 
   /**
@@ -54,9 +63,9 @@ export class Loadable<T> implements Future<T> {
   @computed
   get isLoading(): boolean {
     return (
-      this.state === State.reloading ||
-      this.state === State.retrying ||
-      this.state === State.pending
+      this.state === Loadable.State.reloading ||
+      this.state === Loadable.State.retrying ||
+      this.state === Loadable.State.pending
     );
   }
 
@@ -67,7 +76,7 @@ export class Loadable<T> implements Future<T> {
    */
   @action.bound
   success(data: T): this {
-    this.state = State.success;
+    this.state = Loadable.State.success;
     this.data = data;
     this.didBecomeSuccess(data);
     return this;
@@ -88,7 +97,7 @@ export class Loadable<T> implements Future<T> {
    */
   @action.bound
   failure(error: Error): this {
-    this.state = State.failure;
+    this.state = Loadable.State.failure;
     this.data = error;
     this.didBecomeFailure(error);
     return this;
@@ -122,14 +131,14 @@ export class Loadable<T> implements Future<T> {
   @action.bound
   loading(): this {
     switch (this.state) {
-      case State.empty:
-        this.state = State.pending;
+      case Loadable.State.empty:
+        this.state = Loadable.State.pending;
         break;
-      case State.success:
-        this.state = State.reloading;
+      case Loadable.State.success:
+        this.state = Loadable.State.reloading;
         break;
-      case State.failure:
-        this.state = State.retrying;
+      case Loadable.State.failure:
+        this.state = Loadable.State.retrying;
         break;
       default:
         return this;
@@ -250,4 +259,68 @@ export namespace Loadable {
   }
 }
 
-const State = Loadable.State;
+export interface ReadonlyLoadable<T> {
+  /**
+   * Indicates if this Loadable is a success or reloading.
+   */
+  readonly isSuccess: boolean;
+
+  /**
+   * Indicates if this Loadable is a failure or retrying.
+   */
+  readonly isFailure: boolean;
+
+  /**
+   * Indicates if this Loadable is empty or pending.
+   */
+  readonly isPending: boolean;
+
+  /**
+   * Indicates if this Loadable is the process of loading, which happens in one
+   * of the following three states: reloading, retrying, and pending.
+   */
+  readonly isLoading: boolean;
+
+  /**
+   * Invokes one of the provided callbacks that corresponds this Loadable's
+   * current state.
+   * @param options An object of callbacks to be invoked according to the state.
+   * @returns The return value of whichever callback was selected.
+   */
+  match<A, B, C>(options: Loadable.MatchOptions<T, A, B, C>): A | B | C;
+
+  /**
+   * Returns this Loadable's success value if it is a success, or the provided
+   * default value if it is not.
+   * @param defaultValue A possibly lazy value to use in case of non-success
+   * @returns This Future's success value or the provided default value
+   */
+  successOr<U>(defaultValue: Lazy<U>): T | U;
+
+  /**
+   * Returns this Loadable's error value if it is a failure, or the provided
+   * default value if it is not.
+   * @param defaultValue A possibly lazy value to use in case of non-failure
+   * @returns this Loadable's failure error or the provided default value
+   */
+  failureOr<U>(defaultValue: Lazy<U>): Error | U;
+}
+
+/**
+ * This is a type-level check that will never execute at runtime. It ensures
+ * that `ReadonlyLoadable` is always a strict subset of `Loadable` by asserting
+ * that a `Loadable` is assignable to a `ReadonlyLoadable`.
+ *
+ * If the following block stops compiling, then there is likely something wrong
+ * and incompatible with the definition of `ReadonlyLoadable`.
+ */
+// tslint:disable prefer-const variable-name no-var-keyword
+if (false) {
+  // @ts-ignore
+  (() => {
+    var __loadable: Loadable<void>;
+    // @ts-ignore
+    var __readonly: ReadonlyLoadable<void> = __loadable;
+  })();
+}
+// tslint:enable
