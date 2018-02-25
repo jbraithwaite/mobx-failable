@@ -1,10 +1,17 @@
 import {action, computed, observable} from 'mobx';
-import {Enum} from 'typescript-string-enums';
 
 import {accept, failureOr, successOr} from '../extensions';
 import {Future} from '../future';
 import {Lazy} from '../lazy';
 import {match} from './match';
+import {State as _State} from './state';
+import {
+  Availability,
+  availabilityOf,
+  Flight,
+  flightOf,
+  withFlight,
+} from './traits';
 
 /**
  * Loadable is an extension of Failable. It has six states: empty, pending,
@@ -17,7 +24,7 @@ import {match} from './match';
  */
 export class Loadable<T> implements Future<T> {
   @observable protected data: T | Error | undefined = undefined;
-  @observable protected state: Loadable.State = Loadable.State.empty;
+  @observable protected state: _State = _State.empty;
 
   toString(): string {
     return `Loadable { state=${this.state}, data=${this.data} }`;
@@ -28,10 +35,7 @@ export class Loadable<T> implements Future<T> {
    */
   @computed
   get isSuccess(): boolean {
-    return (
-      this.state === Loadable.State.success ||
-      this.state === Loadable.State.reloading
-    );
+    return availabilityOf(this.state) === Availability.value;
   }
 
   /**
@@ -39,10 +43,7 @@ export class Loadable<T> implements Future<T> {
    */
   @computed
   get isFailure(): boolean {
-    return (
-      this.state === Loadable.State.failure ||
-      this.state === Loadable.State.retrying
-    );
+    return availabilityOf(this.state) === Availability.error;
   }
 
   /**
@@ -50,10 +51,7 @@ export class Loadable<T> implements Future<T> {
    */
   @computed
   get isPending(): boolean {
-    return (
-      this.state === Loadable.State.empty ||
-      this.state === Loadable.State.pending
-    );
+    return availabilityOf(this.state) === Availability.none;
   }
 
   /**
@@ -62,11 +60,7 @@ export class Loadable<T> implements Future<T> {
    */
   @computed
   get isLoading(): boolean {
-    return (
-      this.state === Loadable.State.reloading ||
-      this.state === Loadable.State.retrying ||
-      this.state === Loadable.State.pending
-    );
+    return flightOf(this.state) === Flight.busy;
   }
 
   /**
@@ -76,7 +70,7 @@ export class Loadable<T> implements Future<T> {
    */
   @action.bound
   success(data: T): this {
-    this.state = Loadable.State.success;
+    this.state = _State.success;
     this.data = data;
     this.didBecomeSuccess(data);
     return this;
@@ -97,7 +91,7 @@ export class Loadable<T> implements Future<T> {
    */
   @action.bound
   failure(error: Error): this {
-    this.state = Loadable.State.failure;
+    this.state = _State.failure;
     this.data = error;
     this.didBecomeFailure(error);
     return this;
@@ -130,21 +124,14 @@ export class Loadable<T> implements Future<T> {
    */
   @action.bound
   loading(): this {
-    switch (this.state) {
-      case Loadable.State.empty:
-        this.state = Loadable.State.pending;
-        break;
-      case Loadable.State.success:
-        this.state = Loadable.State.reloading;
-        break;
-      case Loadable.State.failure:
-        this.state = Loadable.State.retrying;
-        break;
-      default:
-        return this;
+    const oldState = this.state;
+    const newState = withFlight(oldState, Flight.busy);
+
+    if (oldState !== newState) {
+      this.state = newState;
+      this.didBecomeLoading();
     }
 
-    this.didBecomeLoading();
     return this;
   }
 
@@ -202,46 +189,15 @@ export class Loadable<T> implements Future<T> {
 
 export namespace Loadable {
   // tslint:disable-next-line:variable-name
-  export const State = Enum({
-    /**
-     * Denotes the absence of data and no requests in flight. This state occurs
-     * only once in the lifecycle of a Loadable.
-     */
-    empty: 'empty',
-
-    /**
-     * Denotes the absence of data and a request in flight.
-     */
-    pending: 'pending',
-
-    /**
-     * Denotes the presence of a value and no requests in flight.
-     */
-    success: 'success',
-
-    /**
-     * Denotes the presence of a value and a request in flight.
-     */
-    reloading: 'reloading',
-
-    /**
-     * Denotes the presence of an error and no requests in flight.
-     */
-    failure: 'failure',
-
-    /**
-     * Denotes the presence of an error and a request in flight.
-     */
-    retrying: 'retrying',
-  });
+  export const State = _State;
 
   /**
-   * All six Loadable states can be sorted by availability (none, value, error)
-   * and by flight (idle, busy). Availability refers to if there is no data,
-   * some data, or some error. Flight, also known as "loading", refers to
-   * whether there is an ongoing request.
+   * Each of the six Loadable states is composed of two traits: availability and
+   * flight. Availability refers to if there is no data, some data, or some
+   * error. Flight, also known as "loading", refers to whether there is an
+   * ongoing request.
    */
-  export type State = Enum<typeof State>;
+  export type State = _State;
 
   /**
    * MatchOptions is an object filled with callbacks. Each callback corresponds
