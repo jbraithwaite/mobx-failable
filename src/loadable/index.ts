@@ -249,13 +249,13 @@ export namespace Loadable {
    * success value was just set. The `failure` callback receives whatever error
    * was just set. The `pending` callback does not receive any values.
    *
-   * All three callbacks take an optional `loading` boolean, which reflects
+   * All three callbacks take an additional `loading` boolean, which reflects
    * the flight of the state. It is true when busy, or false when idle.
    */
   export interface MatchOptions<T, A, B, C> {
-    success: (data: T, loading?: boolean) => A;
-    failure: (error: Error, loading?: boolean) => B;
-    pending: (loading?: boolean) => C;
+    success: (data: T, loading: boolean) => A;
+    failure: (error: Error, loading: boolean) => B;
+    pending: (loading: boolean) => C;
   }
 }
 
