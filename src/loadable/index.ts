@@ -213,6 +213,36 @@ export namespace Loadable {
     failure: (error: Error, loading: boolean) => B;
     pending: (loading: boolean) => C;
   }
+
+  /**
+   * DeriveOptions is similar to MatchOptions, except only one callback is
+   * required. The return value of any callback is accordingly re-wrapped in
+   * another Loadable.
+   */
+  export type DeriveOptions<From, To> =
+    | DeriveOptions.AtLeastSuccess<From, To>
+    | DeriveOptions.AtLeastFailure<From, To>
+    | DeriveOptions.AtLeastPending<From, To>;
+
+  export namespace DeriveOptions {
+    export interface AtLeastSuccess<From, To> {
+      success: (data: From, loading: boolean) => To;
+      failure?: (error: Error, loading: boolean) => To;
+      pending?: (loading: boolean) => To;
+    }
+
+    export interface AtLeastFailure<From, To> {
+      success?: (data: From, loading: boolean) => To;
+      failure: (error: Error, loading: boolean) => To;
+      pending?: (loading: boolean) => To;
+    }
+
+    export interface AtLeastPending<From, To> {
+      success?: (data: From, loading: boolean) => To;
+      failure?: (error: Error, loading: boolean) => To;
+      pending: (loading: boolean) => To;
+    }
+  }
 }
 
 export interface ReadonlyLoadable<T> {
