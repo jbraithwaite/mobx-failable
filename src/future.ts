@@ -4,7 +4,8 @@ import {Lazy} from './lazy';
 
 /**
  * Future is a reactive counterpart to a Promise with MobX semantics. It has
- * three states: pending, success, and failure.
+ * three states: pending, success, and failure. It is an interface-only common
+ * denominator between a `Failable` and a `Loadable`.
  *
  * The methods `success`, `failure`, and `pending` are actions used to change
  * between these states. The read-only properties are computed and indicate the
