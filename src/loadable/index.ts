@@ -347,13 +347,11 @@ export interface ReadonlyLoadable<T> {
  * If the following block stops compiling, then there is likely something wrong
  * and incompatible with the definition of `ReadonlyLoadable`.
  */
-// tslint:disable prefer-const variable-name no-var-keyword
-if (false) {
-  // @ts-ignore
+// tslint:disable prefer-const no-var-keyword no-unused-expression
+false &&
   (() => {
-    var __loadable: Loadable<void>;
-    // @ts-ignore
-    var __readonly: ReadonlyLoadable<void> = __loadable;
+    var loadable: Loadable<void>;
+    var readonly: ReadonlyLoadable<void> = loadable;
+    readonly = readonly;
   })();
-}
 // tslint:enable

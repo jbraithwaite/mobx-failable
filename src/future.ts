@@ -184,13 +184,11 @@ export interface ReadonlyFuture<T> {
  * If the following block stops compiling, then there is likely something wrong
  * and incompatible with the definition of `ReadonlyFuture`.
  */
-// tslint:disable prefer-const variable-name no-var-keyword
-if (false) {
-  // @ts-ignore
+// tslint:disable prefer-const no-var-keyword no-unused-expression
+false &&
   (() => {
-    var __future: Future<void>;
-    // @ts-ignore
-    var __readonly: ReadonlyFuture<void> = __future;
+    var future: Future<void>;
+    var readonly: ReadonlyFuture<void> = future;
+    readonly = readonly;
   })();
-}
 // tslint:enable
