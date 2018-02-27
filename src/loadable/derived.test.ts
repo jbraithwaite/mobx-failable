@@ -10,16 +10,14 @@ useStrict(true);
 const successValue = 3;
 const failureValue = new Error('foobar');
 
-type LoadableFactory<T> = {[_ in State]: () => Loadable<T>};
-
-const make: LoadableFactory<number> = {
+const make: Record<State, () => Loadable<number>> = Object.freeze({
   empty: () => new Loadable<number>(),
   pending: () => new Loadable<number>().pending(),
   success: () => new Loadable<number>().success(successValue),
   reloading: () => new Loadable<number>().success(successValue).pending(),
   failure: () => new Loadable<number>().failure(failureValue),
   retrying: () => new Loadable<number>().failure(failureValue).pending(),
-};
+});
 
 function derive<T, To>(
   f: ReadonlyLoadable<T>,
@@ -30,7 +28,7 @@ function derive<T, To>(
 
 describe('DerivedLoadable', () => {
   describe('given a success-only transform', () => {
-    const options = {success: v => v.toString()};
+    const options = Object.freeze({success: v => v.toString()});
 
     describe('receives a loading argument', () => {
       it('when flight is idle', () => {
@@ -100,11 +98,11 @@ describe('DerivedLoadable', () => {
   });
 
   describe('given a failure-only transform', () => {
-    const options = {
+    const options = Object.freeze({
       failure: (e: Error) => {
         throw new TypeError(e.message);
       },
-    };
+    });
 
     describe('receives a loading argument', () => {
       it('when flight is idle', () => {
@@ -173,14 +171,14 @@ describe('DerivedLoadable', () => {
   });
 
   describe('given a pending-only transform', () => {
-    const pendingToSuccess = {
+    const pendingToSuccess = Object.freeze({
       pending: () => successValue,
-    };
-    const pendingToFailure = {
+    });
+    const pendingToFailure = Object.freeze({
       pending: () => {
         throw failureValue;
       },
-    };
+    });
 
     describe('receives a loading argument', () => {
       it('when flight is idle', () => {
@@ -264,12 +262,12 @@ describe('DerivedLoadable', () => {
   });
 
   describe('given a success and failure transform', () => {
-    const options = {
+    const options = Object.freeze({
       success: v => v.toString(),
       failure: (e: Error) => {
         throw new TypeError(e.message);
       },
-    };
+    });
 
     it('performs an initial transform of a failure', () => {
       const f = make.success();

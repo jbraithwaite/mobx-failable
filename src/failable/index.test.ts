@@ -6,7 +6,7 @@ import {expose} from '../internal';
 
 useStrict(true);
 
-describe('Failable (mutable)', () => {
+describe('Failable', () => {
   class Failable<T> extends F<T> {
     calledSuccess = false;
     didBecomeSuccess(_: T) {
@@ -27,13 +27,11 @@ describe('Failable (mutable)', () => {
   const successValue = 3;
   const failureValue = new Error();
 
-  type FailableFactory<T> = {[State in Future.State]: () => Failable<T>};
-
-  const make: FailableFactory<number> = {
+  const make: Record<Future.State, () => Failable<number>> = Object.freeze({
     pending: () => new Failable<number>().pending(),
     success: () => new Failable<number>().success(successValue),
     failure: () => new Failable<number>().failure(failureValue),
-  };
+  });
 
   describe('constructor', () => {
     const f = expose<void, Failable<void>>(new Failable<void>());

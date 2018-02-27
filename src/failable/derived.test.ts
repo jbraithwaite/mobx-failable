@@ -12,13 +12,11 @@ const State = Future.State;
 const successValue = 3;
 const failureValue = new Error('foobar');
 
-type FailableFactory<T> = {[State in Future.State]: () => Failable<T>};
-
-const make: FailableFactory<number> = {
+const make: Record<Future.State, () => Failable<number>> = Object.freeze({
   pending: () => new Failable<number>().pending(),
   success: () => new Failable<number>().success(successValue),
   failure: () => new Failable<number>().failure(failureValue),
-};
+});
 
 function derive<T, To>(
   f: ReadonlyFuture<T>,
@@ -29,7 +27,7 @@ function derive<T, To>(
 
 describe('DerivedFailable', () => {
   describe('given a success-only transform', () => {
-    const options = {success: v => v.toString()};
+    const options = Object.freeze({success: v => v.toString()});
 
     it('performs an initial transform', () => {
       const f = make.success();
@@ -81,11 +79,11 @@ describe('DerivedFailable', () => {
   });
 
   describe('given a failure-only transform', () => {
-    const options = {
+    const options = Object.freeze({
       failure: (e: Error) => {
         throw new TypeError(e.message);
       },
-    };
+    });
 
     it('performs an initial transform', () => {
       const f = make.failure();
@@ -136,14 +134,14 @@ describe('DerivedFailable', () => {
   });
 
   describe('given a pending-only transform', () => {
-    const pendingToSuccess = {
+    const pendingToSuccess = Object.freeze({
       pending: () => successValue,
-    };
-    const pendingToFailure = {
+    });
+    const pendingToFailure = Object.freeze({
       pending: () => {
         throw failureValue;
       },
-    };
+    });
 
     it('performs an initial transform', () => {
       const f = make.pending();
@@ -194,12 +192,12 @@ describe('DerivedFailable', () => {
   });
 
   describe('given a success and failure transform', () => {
-    const options = {
+    const options = Object.freeze({
       success: v => v.toString(),
       failure: (e: Error) => {
         throw new TypeError(e.message);
       },
-    };
+    });
 
     it('performs an initial transform of a failure', () => {
       const f = make.success();

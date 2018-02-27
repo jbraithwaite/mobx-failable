@@ -7,7 +7,7 @@ import {State} from './state';
 
 useStrict(true);
 
-describe('Loadable (mutable)', () => {
+describe('Loadable', () => {
   class Loadable<T> extends L<T> {
     calledSuccess = false;
     didBecomeSuccess(_: T) {
@@ -28,16 +28,16 @@ describe('Loadable (mutable)', () => {
   const successValue = 3;
   const failureValue = new Error();
 
-  type LoadableFactory<T> = {[_ in State]: () => Loadable<T>};
+  type LoadableFactory<T> = Record<State, () => Loadable<T>>;
 
-  const make: LoadableFactory<number> = {
+  const make: LoadableFactory<number> = Object.freeze({
     empty: () => new Loadable<number>(),
     pending: () => new Loadable<number>().pending(),
     success: () => new Loadable<number>().success(successValue),
     reloading: () => new Loadable<number>().success(successValue).pending(),
     failure: () => new Loadable<number>().failure(failureValue),
     retrying: () => new Loadable<number>().failure(failureValue).pending(),
-  };
+  });
 
   describe('constructor', () => {
     it('initializes the state as empty', () => {
@@ -145,7 +145,7 @@ describe('Loadable (mutable)', () => {
   function expectProperties<T, K extends keyof Loadable<T>>(
     factory: LoadableFactory<T>,
     propertyName: K,
-    expectations: {[_ in State]: Loadable<T>[K]},
+    expectations: Record<State, Loadable<T>[K]>,
   ): void {
     for (const state of Enum.keys(L.State)) {
       const l = factory[state]();
