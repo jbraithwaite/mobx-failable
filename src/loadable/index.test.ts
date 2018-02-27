@@ -3,6 +3,7 @@ import {Enum} from 'typescript-string-enums';
 
 import {Loadable as L} from '.';
 import {expose} from '../internal';
+import {State} from './state';
 
 useStrict(true);
 
@@ -27,7 +28,7 @@ describe('Loadable (mutable)', () => {
   const successValue = 3;
   const failureValue = new Error();
 
-  type LoadableFactory<T> = {[State in L.State]: () => Loadable<T>};
+  type LoadableFactory<T> = {[_ in State]: () => Loadable<T>};
 
   const make: LoadableFactory<number> = {
     empty: () => new Loadable<number>(),
@@ -42,7 +43,7 @@ describe('Loadable (mutable)', () => {
     it('initializes the state as empty', () => {
       const l = expose(new Loadable<any>());
 
-      expect(l.state).toEqual(L.State.empty);
+      expect(l.state).toEqual(State.empty);
     });
   });
 
@@ -50,7 +51,7 @@ describe('Loadable (mutable)', () => {
     it('sets the internal state to success', () => {
       const l = expose(make.success());
 
-      expect(l.state).toEqual(L.State.success);
+      expect(l.state).toEqual(State.success);
     });
 
     it('sets the internal data to the given value', () => {
@@ -72,7 +73,7 @@ describe('Loadable (mutable)', () => {
     it('sets the internal state to failure', () => {
       const l = expose(make.failure());
 
-      expect(l.state).toEqual(L.State.failure);
+      expect(l.state).toEqual(State.failure);
     });
 
     it('sets the internal data to the given value', () => {
@@ -94,21 +95,21 @@ describe('Loadable (mutable)', () => {
     it('sets the internal state to reloading when success', () => {
       const l = expose(make.success().loading());
 
-      expect(l.state).toEqual(L.State.reloading);
+      expect(l.state).toEqual(State.reloading);
       expect(l.data).toEqual(successValue);
     });
 
     it('sets the internal state to retrying when failure', () => {
       const l = expose(make.failure().loading());
 
-      expect(l.state).toEqual(L.State.retrying);
+      expect(l.state).toEqual(State.retrying);
       expect(l.data).toEqual(failureValue);
     });
 
     it('sets the internal state to pending when empty', () => {
       const l = expose(make.empty().loading());
 
-      expect(l.state).toEqual(L.State.pending);
+      expect(l.state).toEqual(State.pending);
       expect(l.data).toEqual(undefined);
     });
 
@@ -144,7 +145,7 @@ describe('Loadable (mutable)', () => {
   function expectProperties<T, K extends keyof Loadable<T>>(
     factory: LoadableFactory<T>,
     propertyName: K,
-    expectations: {[State in L.State]: Loadable<T>[K]},
+    expectations: {[_ in State]: Loadable<T>[K]},
   ): void {
     for (const state of Enum.keys(L.State)) {
       const l = factory[state]();
@@ -280,7 +281,7 @@ describe('Loadable (mutable)', () => {
       const previousData = l.data;
       l.accept(never);
 
-      expect(l.state).toEqual(L.State.pending);
+      expect(l.state).toEqual(State.pending);
       expect(l.data).toEqual(previousData);
     });
 
@@ -289,7 +290,7 @@ describe('Loadable (mutable)', () => {
       const previousData = l.data;
       l.accept(never);
 
-      expect(l.state).toEqual(L.State.reloading);
+      expect(l.state).toEqual(State.reloading);
       expect(l.data).toEqual(previousData);
     });
 
@@ -298,7 +299,7 @@ describe('Loadable (mutable)', () => {
       const previousData = l.data;
       l.accept(never);
 
-      expect(l.state).toEqual(L.State.retrying);
+      expect(l.state).toEqual(State.retrying);
       expect(l.data).toEqual(previousData);
     });
 
@@ -309,7 +310,7 @@ describe('Loadable (mutable)', () => {
       when(
         () => !l.isPending,
         () => {
-          expect(l.state).toEqual(L.State.success);
+          expect(l.state).toEqual(State.success);
           expect(l.data).toEqual(successValue);
           done();
         },
@@ -323,7 +324,7 @@ describe('Loadable (mutable)', () => {
       when(
         () => !l.isPending,
         () => {
-          expect(l.state).toEqual(L.State.failure);
+          expect(l.state).toEqual(State.failure);
           expect(l.data).toEqual(failureValue);
           done();
         },
@@ -420,6 +421,50 @@ describe('Loadable (mutable)', () => {
 
       expect(result).not.toEqual(failureValue);
       expect(result).toEqual(fallback);
+    });
+  });
+
+  describe('map', () => {
+    it('transforms a success value into another value', () => {
+      const f = expose(make.success());
+      const g = expose(f.map(x => x + 1));
+
+      expect(g.data).toBe(successValue + 1);
+      expect(g.state).toBe(f.state);
+    });
+
+    it('transforms a success value into an error', () => {
+      const f = make.success();
+      const g = expose(
+        f.map(() => {
+          throw failureValue;
+        }),
+      );
+
+      expect(g.data).toBe(failureValue);
+      expect(g.state).toBe(State.failure);
+    });
+  });
+
+  describe('rescue', () => {
+    it('transforms an error value into a success value', () => {
+      const f = make.failure();
+      const g = expose(f.rescue(e => e.message));
+
+      expect(g.data).toBe(failureValue.message);
+      expect(g.state).toBe(State.success);
+    });
+
+    it('transforms an error value into a another error value', () => {
+      const f = expose(make.failure());
+      const g = expose(
+        f.rescue(e => {
+          throw failureValue;
+        }),
+      );
+
+      expect(g.data).toBe(failureValue);
+      expect(g.state).toBe(f.state);
     });
   });
 });
