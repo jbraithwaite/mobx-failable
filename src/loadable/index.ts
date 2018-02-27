@@ -337,6 +337,46 @@ export interface ReadonlyLoadable<T> {
    * @returns this Loadable's error or the provided default error
    */
   failureOr<U>(defaultValue: Lazy<U>): Error | U;
+
+  /**
+   * Derives a ReadonlyLoadable that syncs with this Loadable using the given
+   * options. For each transform function in the options, returning a value will
+   * turn the derivation into a success or a reloading with that value, whereas
+   * throwing an error will turn it into a failure or a retrying with that error
+   * value.
+   *
+   * The resulting derivation updates as the Loadable it is derived from
+   * updates and changes state.
+   * @param options An object of transform functions to be invoked according
+   * to the state
+   * @returns A derived ReadonlyLoadable
+   */
+  derive<U>(options: Loadable.DeriveOptions<T, U>): ReadonlyLoadable<U>;
+
+  /**
+   * Creates a derived ReadonlyLoadable that syncs with this Loadable, except
+   * success values are first transformed using the provided function `f`. When
+   * the provided function throws, the derived ReadonlyLoadable becomes a
+   * failure or a retrying.
+   *
+   * This is a shorthand of calling `derive` with only a `success` function.
+   * @param f The success transformation function
+   * @returns A derived ReadonlyFuture
+   */
+  map<U>(f: (value: T) => U): ReadonlyLoadable<U>;
+
+  /**
+   * Creates a derived ReadonlyLoadable that syncs with this Loadable, except
+   * error values are first transformed using the provided function `f`. When
+   * the provided function returns, the derived ReadonlyLoadable becomes a
+   * success or a reloading. When it throws, the derivation becomes a failure
+   * or retrying.
+   *
+   * This is a shorthand of calling `derive` with only a `failure` function.
+   * @param f The failure transformation function
+   * @returns A derived ReadonlyFuture
+   */
+  rescue<U = T>(f: (error: Error) => U): ReadonlyLoadable<U>;
 }
 
 /**
