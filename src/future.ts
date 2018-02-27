@@ -170,7 +170,7 @@ export namespace Future {
 }
 
 /**
- * ReadonlyFuture is read-only subset of Future.
+ * ReadonlyFuture is a read-only subset of Future.
  */
 export interface ReadonlyFuture<T> {
   /**
