@@ -3,7 +3,6 @@ import {computed, useStrict, when} from 'mobx';
 import {Failable as F} from '.';
 import {Future} from '../future';
 import {expose} from '../internal';
-import {SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG} from 'constants';
 
 useStrict(true);
 
