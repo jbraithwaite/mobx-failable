@@ -8,6 +8,10 @@ export function match<T, A, B, C>(
 ): A | B | C {
   const {success, failure, pending} = options;
 
+  /**
+   * We directly cast here because it is more succinct and less overhead
+   * compared to other techniques, like tagged unions and custom type guards.
+   */
   switch (state) {
     case Loadable.State.success:
     case Loadable.State.reloading:
