@@ -154,8 +154,8 @@ export class Loadable<T> implements Future<T> {
   }
 
   /**
-   * Accepts a promise by immediately setting this Loadable to loading, and
-   * then either setting this Loadable to a success if the promise was
+   * Accepts a promise by immediately setting this Loadable to a loading state,
+   * and then either setting this Loadable to a success if the promise was
    * fulfilled, or setting this Loadable to a failure if the promise was
    * rejected.
    * @param promise A promise to be accepted
@@ -167,20 +167,20 @@ export class Loadable<T> implements Future<T> {
   }
 
   /**
-   * Returns this Loadable's success value if it is a success, or the provided
-   * default value if it is not.
-   * @param defaultValue A possibly lazy value to use in case of non-success
-   * @returns This Future's success value or the provided default value
+   * Returns this Loadable's success value if it is a success or a reloading,
+   * or the provided default value if it is not.
+   * @param defaultValue A possibly lazy value to use in case of non-value
+   * @returns This Loadable's value or the provided default value
    */
   successOr<U>(defaultValue: Lazy<U>): T | U {
     return successOr(this, defaultValue);
   }
 
   /**
-   * Returns this Loadable's error value if it is a failure, or the provided
-   * default value if it is not.
-   * @param defaultValue A possibly lazy value to use in case of non-failure
-   * @returns this Loadable's failure error or the provided default value
+   * Returns this Loadable's error value if it is a failure or a retrying, or
+   * the provided default value if it is not.
+   * @param defaultValue A possibly lazy value to use in case of non-error
+   * @returns this Loadable's error or the provided default error
    */
   failureOr<U>(defaultValue: Lazy<U>): Error | U {
     return failureOr(this, defaultValue);
@@ -276,18 +276,18 @@ export interface ReadonlyLoadable<T> {
   match<A, B, C>(options: Loadable.MatchOptions<T, A, B, C>): A | B | C;
 
   /**
-   * Returns this Loadable's success value if it is a success, or the provided
-   * default value if it is not.
-   * @param defaultValue A possibly lazy value to use in case of non-success
-   * @returns This Future's success value or the provided default value
+   * Returns this Loadable's success value if it is a success or a reloading,
+   * or the provided default value if it is not.
+   * @param defaultValue A possibly lazy value to use in case of non-value
+   * @returns This Loadable's value or the provided default value
    */
   successOr<U>(defaultValue: Lazy<U>): T | U;
 
   /**
-   * Returns this Loadable's error value if it is a failure, or the provided
-   * default value if it is not.
-   * @param defaultValue A possibly lazy value to use in case of non-failure
-   * @returns this Loadable's failure error or the provided default value
+   * Returns this Loadable's error value if it is a failure or a retrying, or
+   * the provided default value if it is not.
+   * @param defaultValue A possibly lazy value to use in case of non-error
+   * @returns this Loadable's error or the provided default error
    */
   failureOr<U>(defaultValue: Lazy<U>): Error | U;
 }
