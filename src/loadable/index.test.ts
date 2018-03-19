@@ -1,60 +1,68 @@
 import {computed, useStrict, when} from 'mobx';
 import {Enum} from 'typescript-string-enums';
 
-import {Loadable as L} from './loadable';
+import {Loadable as L} from '.';
+import {expose} from '../internal';
+import {State} from './state';
 
 useStrict(true);
 
-describe('Loadable (mutable)', () => {
+describe('Loadable', () => {
   class Loadable<T> extends L<T> {
-    @computed get internalData(): T | Error | undefined { return this.data; }
-    @computed get internalState(): L.State { return this.state; }
-
     calledSuccess = false;
-    didBecomeSuccess(_: T) { this.calledSuccess = true; }
+    didBecomeSuccess(_: T) {
+      this.calledSuccess = true;
+    }
 
     calledFailure = false;
-    didBecomeFailure(_: Error) { this.calledFailure = true; }
+    didBecomeFailure(_: Error) {
+      this.calledFailure = true;
+    }
 
     calledLoading = false;
-    didBecomeLoading() { this.calledLoading = true; }
+    didBecomeLoading() {
+      this.calledLoading = true;
+    }
   }
 
   const successValue = 3;
   const failureValue = new Error();
 
-  type LoadableFactory<T> = {[State in L.State]: () => Loadable<T>};
+  type LoadableFactory<T> = Record<State, () => Loadable<T>>;
 
-  const make: LoadableFactory<number> = {
+  const make: LoadableFactory<number> = Object.freeze({
     empty: () => new Loadable<number>(),
     pending: () => new Loadable<number>().pending(),
     success: () => new Loadable<number>().success(successValue),
     reloading: () => new Loadable<number>().success(successValue).pending(),
     failure: () => new Loadable<number>().failure(failureValue),
     retrying: () => new Loadable<number>().failure(failureValue).pending(),
-  };
+  });
 
   describe('constructor', () => {
     it('initializes the state as empty', () => {
-      const l = new Loadable<any>();
+      const l = expose(new Loadable<any>());
 
-      expect(l.internalState).toEqual(L.State.empty);
+      expect(l.state).toEqual(State.empty);
     });
   });
 
   describe('success', () => {
-    let l: Loadable<number>;
-    beforeEach(() => l = make.success());
-
     it('sets the internal state to success', () => {
-      expect(l.internalState).toEqual(L.State.success);
+      const l = expose(make.success());
+
+      expect(l.state).toEqual(State.success);
     });
 
     it('sets the internal data to the given value', () => {
-      expect(l.internalData).toEqual(successValue);
+      const l = expose(make.success());
+
+      expect(l.data).toEqual(successValue);
     });
 
     it('invokes didBecomeSuccess', () => {
+      const l = expose(make.success());
+
       expect(l.calledSuccess).toBe(true);
       expect(l.calledFailure).toBe(false);
       expect(l.calledLoading).toBe(false);
@@ -62,18 +70,21 @@ describe('Loadable (mutable)', () => {
   });
 
   describe('failure', () => {
-    let l: Loadable<number>;
-    beforeEach(() => l = make.failure());
-
     it('sets the internal state to failure', () => {
-      expect(l.internalState).toEqual(L.State.failure);
+      const l = expose(make.failure());
+
+      expect(l.state).toEqual(State.failure);
     });
 
     it('sets the internal data to the given value', () => {
-      expect(l.internalData).toEqual(failureValue);
+      const l = expose(make.failure());
+
+      expect(l.data).toEqual(failureValue);
     });
 
     it('invokes didBecomeFailure', () => {
+      const l = expose(make.failure());
+
       expect(l.calledSuccess).toBe(false);
       expect(l.calledFailure).toBe(true);
       expect(l.calledLoading).toBe(false);
@@ -82,24 +93,24 @@ describe('Loadable (mutable)', () => {
 
   describe('loading', () => {
     it('sets the internal state to reloading when success', () => {
-      const l = make.success().loading();
+      const l = expose(make.success().loading());
 
-      expect(l.internalState).toEqual(L.State.reloading);
-      expect(l.internalData).toEqual(successValue);
+      expect(l.state).toEqual(State.reloading);
+      expect(l.data).toEqual(successValue);
     });
 
     it('sets the internal state to retrying when failure', () => {
-      const l = make.failure().loading();
+      const l = expose(make.failure().loading());
 
-      expect(l.internalState).toEqual(L.State.retrying);
-      expect(l.internalData).toEqual(failureValue);
+      expect(l.state).toEqual(State.retrying);
+      expect(l.data).toEqual(failureValue);
     });
 
     it('sets the internal state to pending when empty', () => {
-      const l = make.empty().loading();
+      const l = expose(make.empty().loading());
 
-      expect(l.internalState).toEqual(L.State.pending);
-      expect(l.internalData).toEqual(undefined);
+      expect(l.state).toEqual(State.pending);
+      expect(l.data).toEqual(undefined);
     });
 
     it('invokes didBecomeLoading', () => {
@@ -134,7 +145,7 @@ describe('Loadable (mutable)', () => {
   function expectProperties<T, K extends keyof Loadable<T>>(
     factory: LoadableFactory<T>,
     propertyName: K,
-    expectations: {[State in L.State]: Loadable<T>[K]},
+    expectations: Record<State, Loadable<T>[K]>,
   ): void {
     for (const state of Enum.keys(L.State)) {
       const l = factory[state]();
@@ -255,62 +266,66 @@ describe('Loadable (mutable)', () => {
   });
 
   describe('accept', () => {
-    const never = new Promise<never>((_resolve, _reject) => {/* */});
+    const never = new Promise<never>((_resolve, _reject) => {
+      /* */
+    });
     const resolved = Promise.resolve(successValue);
     const rejected = Promise.reject(failureValue);
     // Suppress PromiseRejectionHandledWarning in node:
-    rejected.catch(() => {/* */});
+    rejected.catch(() => {
+      /* */
+    });
 
     it('first transitions to pending when empty', () => {
-      const l = make.empty();
-      const previousData = l.internalData;
+      const l = expose(make.empty());
+      const previousData = l.data;
       l.accept(never);
 
-      expect(l.internalState).toEqual(L.State.pending);
-      expect(l.internalData).toEqual(previousData);
+      expect(l.state).toEqual(State.pending);
+      expect(l.data).toEqual(previousData);
     });
 
     it('first transitions to reloading when success', () => {
-      const l = make.success();
-      const previousData = l.internalData;
+      const l = expose(make.success());
+      const previousData = l.data;
       l.accept(never);
 
-      expect(l.internalState).toEqual(L.State.reloading);
-      expect(l.internalData).toEqual(previousData);
+      expect(l.state).toEqual(State.reloading);
+      expect(l.data).toEqual(previousData);
     });
 
     it('first transitions to retrying when failure', () => {
-      const l = make.failure();
-      const previousData = l.internalData;
+      const l = expose(make.failure());
+      const previousData = l.data;
       l.accept(never);
 
-      expect(l.internalState).toEqual(L.State.retrying);
-      expect(l.internalData).toEqual(previousData);
+      expect(l.state).toEqual(State.retrying);
+      expect(l.data).toEqual(previousData);
     });
 
     it('transitions to success when the promise is fulfilled', done => {
-      const l = make.empty();
+      const l = expose(make.empty());
       l.accept(resolved);
 
       when(
         () => !l.isPending,
         () => {
-          expect(l.internalState).toEqual(L.State.success);
-          expect(l.internalData).toEqual(successValue);
+          expect(l.state).toEqual(State.success);
+          expect(l.data).toEqual(successValue);
           done();
         },
       );
     });
 
     it('transitions to failure when the promise is rejected', done => {
-      const l = make.empty();
+      const l = expose(make.empty());
       l.accept(rejected);
 
       when(
         () => !l.isPending,
         () => {
-          expect(l.internalState).toEqual(L.State.failure);
-          expect(l.internalData).toEqual(failureValue);
+          expect(l.state).toEqual(State.failure);
+          expect(l.data).toEqual(failureValue);
           done();
         },
       );
@@ -406,6 +421,50 @@ describe('Loadable (mutable)', () => {
 
       expect(result).not.toEqual(failureValue);
       expect(result).toEqual(fallback);
+    });
+  });
+
+  describe('map', () => {
+    it('transforms a success value into another value', () => {
+      const f = expose(make.success());
+      const g = expose(f.map(x => x + 1));
+
+      expect(g.data).toBe(successValue + 1);
+      expect(g.state).toBe(f.state);
+    });
+
+    it('transforms a success value into an error', () => {
+      const f = make.success();
+      const g = expose(
+        f.map(() => {
+          throw failureValue;
+        }),
+      );
+
+      expect(g.data).toBe(failureValue);
+      expect(g.state).toBe(State.failure);
+    });
+  });
+
+  describe('rescue', () => {
+    it('transforms an error value into a success value', () => {
+      const f = make.failure();
+      const g = expose(f.rescue(e => e.message));
+
+      expect(g.data).toBe(failureValue.message);
+      expect(g.state).toBe(State.success);
+    });
+
+    it('transforms an error value into a another error value', () => {
+      const f = expose(make.failure());
+      const g = expose(
+        f.rescue(e => {
+          throw failureValue;
+        }),
+      );
+
+      expect(g.data).toBe(failureValue);
+      expect(g.state).toBe(f.state);
     });
   });
 });

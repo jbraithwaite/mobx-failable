@@ -1,0 +1,193 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TraitSet availabilityOf given states returns the correct flight for state empty 1`] = `0`;
+
+exports[`TraitSet availabilityOf given states returns the correct flight for state failure 1`] = `2`;
+
+exports[`TraitSet availabilityOf given states returns the correct flight for state pending 1`] = `0`;
+
+exports[`TraitSet availabilityOf given states returns the correct flight for state reloading 1`] = `1`;
+
+exports[`TraitSet availabilityOf given states returns the correct flight for state retrying 1`] = `2`;
+
+exports[`TraitSet availabilityOf given states returns the correct flight for state success 1`] = `1`;
+
+exports[`TraitSet availabilityOf given trait sets returns the correct flight for trait set 0 1`] = `0`;
+
+exports[`TraitSet availabilityOf given trait sets returns the correct flight for trait set 1 1`] = `0`;
+
+exports[`TraitSet availabilityOf given trait sets returns the correct flight for trait set 2 1`] = `1`;
+
+exports[`TraitSet availabilityOf given trait sets returns the correct flight for trait set 3 1`] = `1`;
+
+exports[`TraitSet availabilityOf given trait sets returns the correct flight for trait set 4 1`] = `2`;
+
+exports[`TraitSet availabilityOf given trait sets returns the correct flight for trait set 5 1`] = `2`;
+
+exports[`TraitSet constructor returns correctly for state empty 1`] = `0`;
+
+exports[`TraitSet constructor returns correctly for state failure 1`] = `4`;
+
+exports[`TraitSet constructor returns correctly for state pending 1`] = `1`;
+
+exports[`TraitSet constructor returns correctly for state reloading 1`] = `3`;
+
+exports[`TraitSet constructor returns correctly for state retrying 1`] = `5`;
+
+exports[`TraitSet constructor returns correctly for state success 1`] = `2`;
+
+exports[`TraitSet flightOf given states returns the correct flight for state empty 1`] = `0`;
+
+exports[`TraitSet flightOf given states returns the correct flight for state failure 1`] = `0`;
+
+exports[`TraitSet flightOf given states returns the correct flight for state pending 1`] = `1`;
+
+exports[`TraitSet flightOf given states returns the correct flight for state reloading 1`] = `1`;
+
+exports[`TraitSet flightOf given states returns the correct flight for state retrying 1`] = `1`;
+
+exports[`TraitSet flightOf given states returns the correct flight for state success 1`] = `0`;
+
+exports[`TraitSet flightOf given trait sets returns the correct flight for trait set 0 1`] = `0`;
+
+exports[`TraitSet flightOf given trait sets returns the correct flight for trait set 1 1`] = `1`;
+
+exports[`TraitSet flightOf given trait sets returns the correct flight for trait set 2 1`] = `0`;
+
+exports[`TraitSet flightOf given trait sets returns the correct flight for trait set 3 1`] = `1`;
+
+exports[`TraitSet flightOf given trait sets returns the correct flight for trait set 4 1`] = `0`;
+
+exports[`TraitSet flightOf given trait sets returns the correct flight for trait set 5 1`] = `1`;
+
+exports[`TraitSet toState returns correctly for TraitSet 0 1`] = `"empty"`;
+
+exports[`TraitSet toState returns correctly for TraitSet 1 1`] = `"pending"`;
+
+exports[`TraitSet toState returns correctly for TraitSet 2 1`] = `"success"`;
+
+exports[`TraitSet toState returns correctly for TraitSet 3 1`] = `"reloading"`;
+
+exports[`TraitSet toState returns correctly for TraitSet 4 1`] = `"failure"`;
+
+exports[`TraitSet toState returns correctly for TraitSet 5 1`] = `"retrying"`;
+
+exports[`TraitSet withAvailability changes state empty to availability 0 1`] = `"empty"`;
+
+exports[`TraitSet withAvailability changes state empty to availability 1 1`] = `"success"`;
+
+exports[`TraitSet withAvailability changes state empty to availability 2 1`] = `"failure"`;
+
+exports[`TraitSet withAvailability changes state empty to availability error 1`] = `"empty"`;
+
+exports[`TraitSet withAvailability changes state empty to availability none 1`] = `"empty"`;
+
+exports[`TraitSet withAvailability changes state empty to availability value 1`] = `"empty"`;
+
+exports[`TraitSet withAvailability changes state failure to availability 0 1`] = `"empty"`;
+
+exports[`TraitSet withAvailability changes state failure to availability 1 1`] = `"success"`;
+
+exports[`TraitSet withAvailability changes state failure to availability 2 1`] = `"failure"`;
+
+exports[`TraitSet withAvailability changes state failure to availability error 1`] = `"empty"`;
+
+exports[`TraitSet withAvailability changes state failure to availability none 1`] = `"empty"`;
+
+exports[`TraitSet withAvailability changes state failure to availability value 1`] = `"empty"`;
+
+exports[`TraitSet withAvailability changes state pending to availability 0 1`] = `"pending"`;
+
+exports[`TraitSet withAvailability changes state pending to availability 1 1`] = `"reloading"`;
+
+exports[`TraitSet withAvailability changes state pending to availability 2 1`] = `"retrying"`;
+
+exports[`TraitSet withAvailability changes state pending to availability error 1`] = `"pending"`;
+
+exports[`TraitSet withAvailability changes state pending to availability none 1`] = `"pending"`;
+
+exports[`TraitSet withAvailability changes state pending to availability value 1`] = `"pending"`;
+
+exports[`TraitSet withAvailability changes state reloading to availability 0 1`] = `"pending"`;
+
+exports[`TraitSet withAvailability changes state reloading to availability 1 1`] = `"reloading"`;
+
+exports[`TraitSet withAvailability changes state reloading to availability 2 1`] = `"retrying"`;
+
+exports[`TraitSet withAvailability changes state reloading to availability error 1`] = `"pending"`;
+
+exports[`TraitSet withAvailability changes state reloading to availability none 1`] = `"pending"`;
+
+exports[`TraitSet withAvailability changes state reloading to availability value 1`] = `"pending"`;
+
+exports[`TraitSet withAvailability changes state retrying to availability 0 1`] = `"pending"`;
+
+exports[`TraitSet withAvailability changes state retrying to availability 1 1`] = `"reloading"`;
+
+exports[`TraitSet withAvailability changes state retrying to availability 2 1`] = `"retrying"`;
+
+exports[`TraitSet withAvailability changes state retrying to availability error 1`] = `"pending"`;
+
+exports[`TraitSet withAvailability changes state retrying to availability none 1`] = `"pending"`;
+
+exports[`TraitSet withAvailability changes state retrying to availability value 1`] = `"pending"`;
+
+exports[`TraitSet withAvailability changes state success to availability 0 1`] = `"empty"`;
+
+exports[`TraitSet withAvailability changes state success to availability 1 1`] = `"success"`;
+
+exports[`TraitSet withAvailability changes state success to availability 2 1`] = `"failure"`;
+
+exports[`TraitSet withAvailability changes state success to availability error 1`] = `"empty"`;
+
+exports[`TraitSet withAvailability changes state success to availability none 1`] = `"empty"`;
+
+exports[`TraitSet withAvailability changes state success to availability value 1`] = `"empty"`;
+
+exports[`TraitSet withFlight changes state empty to flight 0 1`] = `"empty"`;
+
+exports[`TraitSet withFlight changes state empty to flight 1 1`] = `"pending"`;
+
+exports[`TraitSet withFlight changes state empty to flight busy 1`] = `"empty"`;
+
+exports[`TraitSet withFlight changes state empty to flight idle 1`] = `"empty"`;
+
+exports[`TraitSet withFlight changes state failure to flight 0 1`] = `"failure"`;
+
+exports[`TraitSet withFlight changes state failure to flight 1 1`] = `"retrying"`;
+
+exports[`TraitSet withFlight changes state failure to flight busy 1`] = `"failure"`;
+
+exports[`TraitSet withFlight changes state failure to flight idle 1`] = `"failure"`;
+
+exports[`TraitSet withFlight changes state pending to flight 0 1`] = `"empty"`;
+
+exports[`TraitSet withFlight changes state pending to flight 1 1`] = `"pending"`;
+
+exports[`TraitSet withFlight changes state pending to flight busy 1`] = `"empty"`;
+
+exports[`TraitSet withFlight changes state pending to flight idle 1`] = `"empty"`;
+
+exports[`TraitSet withFlight changes state reloading to flight 0 1`] = `"success"`;
+
+exports[`TraitSet withFlight changes state reloading to flight 1 1`] = `"reloading"`;
+
+exports[`TraitSet withFlight changes state reloading to flight busy 1`] = `"success"`;
+
+exports[`TraitSet withFlight changes state reloading to flight idle 1`] = `"success"`;
+
+exports[`TraitSet withFlight changes state retrying to flight 0 1`] = `"failure"`;
+
+exports[`TraitSet withFlight changes state retrying to flight 1 1`] = `"retrying"`;
+
+exports[`TraitSet withFlight changes state retrying to flight busy 1`] = `"failure"`;
+
+exports[`TraitSet withFlight changes state retrying to flight idle 1`] = `"failure"`;
+
+exports[`TraitSet withFlight changes state success to flight 0 1`] = `"success"`;
+
+exports[`TraitSet withFlight changes state success to flight 1 1`] = `"reloading"`;
+
+exports[`TraitSet withFlight changes state success to flight busy 1`] = `"success"`;
+
+exports[`TraitSet withFlight changes state success to flight idle 1`] = `"success"`;
