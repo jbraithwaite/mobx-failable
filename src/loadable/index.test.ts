@@ -1,13 +1,9 @@
-import {computed, configure, when} from 'mobx';
+import {computed, when} from 'mobx';
 import {Enum} from 'typescript-string-enums';
 
 import {Loadable as L} from '.';
 import {expose} from '../internal';
 import {State} from './state';
-
-configure({
-  enforceActions: true,
-});
 
 describe('Loadable', () => {
   class Loadable<T> extends L<T> {

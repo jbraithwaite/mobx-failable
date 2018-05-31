@@ -1,13 +1,9 @@
-import {computed, configure, when} from 'mobx';
+import {computed, when} from 'mobx';
 
 import {Loadable, ReadonlyLoadable} from '.';
 import {expose} from '../internal';
 import {DerivedLoadable} from './derived';
 import {State} from './state';
-
-configure({
-  enforceActions: true,
-});
 
 const successValue = 3;
 const failureValue = new Error('foobar');
