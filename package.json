@@ -1,6 +1,6 @@
 {
   "name": "mobx-failable",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "description": "Simplified error handling in MobX",
   "main": "index.js",
   "typings": "index",
