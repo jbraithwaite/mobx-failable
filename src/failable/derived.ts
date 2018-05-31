@@ -19,7 +19,7 @@ export class DerivedFailable<T, To> implements ReadonlyFuture<To> {
     protected options: Future.DeriveOptions<T, To>,
   ) {
     this.underlying = underlying;
-    this.transformation = autorun('transformation', () => this.transform());
+    this.transformation = autorun(() => this.transform(), {name: 'transformation'});
     this.transform();
   }
 
