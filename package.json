@@ -36,7 +36,7 @@
     "typescript": "^2.9.1"
   },
   "peerDependencies": {
-    "mobx": "^3.6.2"
+    "mobx": "^4.3.0"
   },
   "dependencies": {
     "typescript-string-enums": "^0.3.5"
