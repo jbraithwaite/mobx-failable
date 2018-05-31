@@ -1,11 +1,13 @@
-import {computed, useStrict, when} from 'mobx';
+import {computed, configure, when} from 'mobx';
 
 import {Loadable, ReadonlyLoadable} from '.';
 import {expose} from '../internal';
 import {DerivedLoadable} from './derived';
 import {State} from './state';
 
-useStrict(true);
+configure({
+  enforceActions: true,
+});
 
 const successValue = 3;
 const failureValue = new Error('foobar');

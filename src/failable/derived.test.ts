@@ -1,11 +1,13 @@
-import {computed, useStrict, when} from 'mobx';
+import {computed, configure, when} from 'mobx';
 
 import {Failable} from '.';
 import {Future, ReadonlyFuture} from '../future';
 import {expose} from '../internal';
 import {DerivedFailable} from './derived';
 
-useStrict(true);
+configure({
+  enforceActions: true,
+});
 
 const State = Future.State;
 
