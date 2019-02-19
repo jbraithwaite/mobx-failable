@@ -22,7 +22,7 @@ function derive<T, To>(
   return expose(new DerivedLoadable(f, options));
 }
 
-function ensureError(error: any): error is Error {
+function ensureError(error: unknown): error is Error {
   if (error instanceof Error) {
     return true;
   } else {
