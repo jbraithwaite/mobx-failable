@@ -1,7 +1,7 @@
-import { Failable } from '.';
-import { Future, ReadonlyFuture } from '../future';
-import { expose } from '../internal';
-import { DerivedFailable } from './derived';
+import {Failable} from '.';
+import {Future, ReadonlyFuture} from '../future';
+import {expose} from '../internal';
+import {DerivedFailable} from './derived';
 
 const State = Future.State;
 
@@ -31,7 +31,7 @@ function ensureError(error: unknown): error is Error {
 
 describe('DerivedFailable', () => {
   describe('given a success-only transform', () => {
-    const options = Object.freeze({ success: (v: typeof successValue) => v.toString() });
+    const options = Object.freeze({success: (v: typeof successValue) => v.toString()});
 
     it('performs an initial transform', () => {
       const f = make.success();
