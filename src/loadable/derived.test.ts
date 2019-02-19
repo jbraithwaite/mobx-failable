@@ -1,5 +1,3 @@
-import {computed, when} from 'mobx';
-
 import {Loadable, ReadonlyLoadable} from '.';
 import {expose} from '../internal';
 import {DerivedLoadable} from './derived';
@@ -24,15 +22,23 @@ function derive<T, To>(
   return expose(new DerivedLoadable(f, options));
 }
 
+function ensureError(error: any): error is Error {
+  if (error instanceof Error) {
+    return true;
+  } else {
+    throw new Error('error is not an Error');
+  }
+}
+
 describe('DerivedLoadable', () => {
   describe('given a success-only transform', () => {
-    const options = Object.freeze({success: v => v.toString()});
+    const options = Object.freeze({success: (v: typeof successValue) => v.toString()});
 
     describe('receives a loading argument', () => {
       it('when flight is idle', () => {
         const o = {success: jest.fn(options.success)};
         const f = make.success();
-        const d = derive(f, o);
+        derive(f, o);
 
         expect(o.success).toBeCalledWith(successValue, false);
       });
@@ -40,7 +46,7 @@ describe('DerivedLoadable', () => {
       it('when flight is busy', () => {
         const o = {success: jest.fn(options.success)};
         const f = make.reloading();
-        const d = derive(f, o);
+        derive(f, o);
 
         expect(o.success).toBeCalledWith(successValue, true);
       });
@@ -106,7 +112,7 @@ describe('DerivedLoadable', () => {
       it('when flight is idle', () => {
         const o = {failure: jest.fn(options.failure)};
         const f = make.failure();
-        const d = derive(f, o);
+        derive(f, o);
 
         expect(o.failure).toBeCalledWith(failureValue, false);
       });
@@ -114,7 +120,7 @@ describe('DerivedLoadable', () => {
       it('when flight is busy', () => {
         const o = {failure: jest.fn(options.failure)};
         const f = make.retrying();
-        const d = derive(f, o);
+        derive(f, o);
 
         expect(o.failure).toBeCalledWith(failureValue, true);
       });
@@ -125,7 +131,7 @@ describe('DerivedLoadable', () => {
       const d = derive(f, options);
 
       expect(d.data).toBeInstanceOf(TypeError);
-      expect(d.data.message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.failure);
     });
 
@@ -144,7 +150,7 @@ describe('DerivedLoadable', () => {
 
       f.failure(failureValue);
       expect(d.data).toBeInstanceOf(TypeError);
-      expect(d.data.message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.failure);
     });
 
@@ -182,7 +188,7 @@ describe('DerivedLoadable', () => {
       it('when flight is idle', () => {
         const o = {pending: jest.fn(pendingToSuccess.pending)};
         const f = make.empty();
-        const d = derive(f, o);
+        derive(f, o);
 
         expect(o.pending).toBeCalledWith(false);
       });
@@ -190,7 +196,7 @@ describe('DerivedLoadable', () => {
       it('when flight is busy', () => {
         const o = {pending: jest.fn(pendingToSuccess.pending)};
         const f = make.pending();
-        const d = derive(f, o);
+        derive(f, o);
 
         expect(o.pending).toBeCalledWith(true);
       });
@@ -201,7 +207,7 @@ describe('DerivedLoadable', () => {
       const d = derive(f, pendingToFailure);
 
       expect(d.data).toBeInstanceOf(failureValue.constructor);
-      expect(d.data.message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.retrying);
     });
 
@@ -220,7 +226,7 @@ describe('DerivedLoadable', () => {
 
       f.failure(failureValue);
       expect(d.data).toBeInstanceOf(failureValue.constructor);
-      expect((d.data as Error).message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.failure);
     });
 
@@ -237,7 +243,7 @@ describe('DerivedLoadable', () => {
       const d = derive(f, pendingToFailure);
 
       expect(d.data).toBeInstanceOf(failureValue.constructor);
-      expect(d.data.message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.failure);
     });
 
@@ -254,14 +260,14 @@ describe('DerivedLoadable', () => {
       const d = derive(f, pendingToFailure);
 
       expect(d.data).toBeInstanceOf(failureValue.constructor);
-      expect(d.data.message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.retrying);
     });
   });
 
   describe('given a success and failure transform', () => {
     const options = Object.freeze({
-      success: v => v.toString(),
+      success: (v: typeof successValue) => v.toString(),
       failure: (e: Error) => {
         throw new TypeError(e.message);
       },
@@ -280,7 +286,7 @@ describe('DerivedLoadable', () => {
       const d = derive(f, options);
 
       expect(d.data).toBeInstanceOf(TypeError);
-      expect(d.data.message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.failure);
     });
 
@@ -299,7 +305,7 @@ describe('DerivedLoadable', () => {
 
       f.failure(failureValue);
       expect(d.data).toBeInstanceOf(TypeError);
-      expect(d.data.message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.failure);
     });
 
@@ -316,7 +322,7 @@ describe('DerivedLoadable', () => {
       const f = make.failure();
       const d = derive(f, {
         success: v => v.toString(),
-        failure: (e: Error) => successValue.toString(),
+        failure: () => successValue.toString(),
       });
 
       expect(d.data).toBe(successValue.toString());
@@ -326,10 +332,10 @@ describe('DerivedLoadable', () => {
     it('can transform a success to a failure', () => {
       const f = make.success();
       const d = derive(f, {
-        success: v => {
+        success: () => {
           throw failureValue;
         },
-        failure: (e: Error) => successValue.toString(),
+        failure: () => successValue.toString(),
       });
 
       expect(d.data).toBe(failureValue);

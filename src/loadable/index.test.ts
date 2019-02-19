@@ -1,4 +1,4 @@
-import {computed, when} from 'mobx';
+import {when} from 'mobx';
 import {Enum} from 'typescript-string-enums';
 
 import {Loadable as L} from '.';
@@ -456,7 +456,7 @@ describe('Loadable', () => {
     it('transforms an error value into a another error value', () => {
       const f = expose(make.failure());
       const g = expose(
-        f.rescue(e => {
+        f.rescue(() => {
           throw failureValue;
         }),
       );

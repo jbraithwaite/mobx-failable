@@ -1,9 +1,7 @@
-import {computed, when} from 'mobx';
-
-import {Failable} from '.';
-import {Future, ReadonlyFuture} from '../future';
-import {expose} from '../internal';
-import {DerivedFailable} from './derived';
+import { Failable } from '.';
+import { Future, ReadonlyFuture } from '../future';
+import { expose } from '../internal';
+import { DerivedFailable } from './derived';
 
 const State = Future.State;
 
@@ -23,9 +21,17 @@ function derive<T, To>(
   return expose(new DerivedFailable(f, options));
 }
 
+function ensureError(error: any): error is Error {
+  if (error instanceof Error) {
+    return true;
+  } else {
+    throw new Error('error is not an Error');
+  }
+}
+
 describe('DerivedFailable', () => {
   describe('given a success-only transform', () => {
-    const options = Object.freeze({success: v => v.toString()});
+    const options = Object.freeze({ success: (v: typeof successValue) => v.toString() });
 
     it('performs an initial transform', () => {
       const f = make.success();
@@ -88,7 +94,7 @@ describe('DerivedFailable', () => {
       const d = derive(f, options);
 
       expect(d.data).toBeInstanceOf(TypeError);
-      expect(d.data.message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.failure);
     });
 
@@ -107,7 +113,7 @@ describe('DerivedFailable', () => {
 
       f.failure(failureValue);
       expect(d.data).toBeInstanceOf(TypeError);
-      expect(d.data.message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.failure);
     });
 
@@ -146,7 +152,7 @@ describe('DerivedFailable', () => {
       const d = derive(f, pendingToFailure);
 
       expect(d.data).toBeInstanceOf(failureValue.constructor);
-      expect(d.data.message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.failure);
     });
 
@@ -165,7 +171,7 @@ describe('DerivedFailable', () => {
 
       f.failure(failureValue);
       expect(d.data).toBeInstanceOf(failureValue.constructor);
-      expect((d.data as Error).message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.failure);
     });
 
@@ -184,14 +190,14 @@ describe('DerivedFailable', () => {
 
       f.pending();
       expect(d.data).toBeInstanceOf(failureValue.constructor);
-      expect(d.data.message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.failure);
     });
   });
 
   describe('given a success and failure transform', () => {
     const options = Object.freeze({
-      success: v => v.toString(),
+      success: (v: typeof successValue) => v.toString(),
       failure: (e: Error) => {
         throw new TypeError(e.message);
       },
@@ -207,11 +213,11 @@ describe('DerivedFailable', () => {
 
     it('performs an initial transform of a failure', () => {
       const f = make.failure();
-      const d = derive(f, options);
+      const { data, state } = derive(f, options);
 
-      expect(d.data).toBeInstanceOf(TypeError);
-      expect(d.data.message).toBe(failureValue.message);
-      expect(d.state).toBe(State.failure);
+      expect(data).toBeInstanceOf(TypeError);
+      expect(ensureError(data) && data.message).toBe(failureValue.message);
+      expect(state).toBe(State.failure);
     });
 
     it('transforms a success', () => {
@@ -229,7 +235,7 @@ describe('DerivedFailable', () => {
 
       f.failure(failureValue);
       expect(d.data).toBeInstanceOf(TypeError);
-      expect(d.data.message).toBe(failureValue.message);
+      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
       expect(d.state).toBe(State.failure);
     });
 
@@ -245,8 +251,8 @@ describe('DerivedFailable', () => {
     it('can transform a failure to a success', () => {
       const f = make.failure();
       const d = derive(f, {
-        success: v => v.toString(),
-        failure: (e: Error) => successValue.toString(),
+        success: (v: typeof successValue) => v.toString(),
+        failure: () => successValue.toString(),
       });
 
       expect(d.data).toBe(successValue.toString());
@@ -256,10 +262,10 @@ describe('DerivedFailable', () => {
     it('can transform a success to a failure', () => {
       const f = make.success();
       const d = derive(f, {
-        success: v => {
+        success: () => {
           throw failureValue;
         },
-        failure: (e: Error) => successValue.toString(),
+        failure: () => successValue.toString(),
       });
 
       expect(d.data).toBe(failureValue);

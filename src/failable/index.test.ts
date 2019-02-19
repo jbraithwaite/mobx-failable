@@ -1,4 +1,4 @@
-import {computed, when} from 'mobx';
+import {when} from 'mobx';
 
 import {Failable as F} from '.';
 import {Future} from '../future';
@@ -307,7 +307,7 @@ describe('Failable', () => {
     it('transforms an error value into a another error value', () => {
       const f = expose(make.failure());
       const g = expose(
-        f.rescue(e => {
+        f.rescue(() => {
           throw failureValue;
         }),
       );
