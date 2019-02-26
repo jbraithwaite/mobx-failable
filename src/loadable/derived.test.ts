@@ -1,5 +1,6 @@
 import {Loadable, ReadonlyLoadable} from '.';
 import {expose} from '../internal';
+import {expectError} from '../test-utils';
 import {DerivedLoadable} from './derived';
 import {State} from './state';
 
@@ -20,14 +21,6 @@ function derive<T, To>(
   options: Loadable.DeriveOptions<T, To>,
 ) {
   return expose(new DerivedLoadable(f, options));
-}
-
-function ensureError(error: unknown): error is Error {
-  if (error instanceof Error) {
-    return true;
-  } else {
-    throw new Error('error is not an Error');
-  }
 }
 
 describe('DerivedLoadable', () => {
@@ -130,9 +123,10 @@ describe('DerivedLoadable', () => {
       const f = make.failure();
       const d = derive(f, options);
 
-      expect(d.data).toBeInstanceOf(TypeError);
-      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
-      expect(d.state).toBe(State.failure);
+      expectError(d.data, TypeError, error => {
+        expect(error.message).toBe(failureValue.message);
+        expect(d.state).toBe(State.failure);
+      });
     });
 
     it('passes through a success', () => {
@@ -149,9 +143,10 @@ describe('DerivedLoadable', () => {
       const d = derive(f, options);
 
       f.failure(failureValue);
-      expect(d.data).toBeInstanceOf(TypeError);
-      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
-      expect(d.state).toBe(State.failure);
+      expectError(d.data, TypeError, error => {
+        expect(error.message).toBe(failureValue.message);
+        expect(d.state).toBe(State.failure);
+      });
     });
 
     it('passes through a pending', () => {
@@ -207,8 +202,10 @@ describe('DerivedLoadable', () => {
       const d = derive(f, pendingToFailure);
 
       expect(d.data).toBeInstanceOf(failureValue.constructor);
-      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
-      expect(d.state).toBe(State.retrying);
+      expectError(d.data, Error, error => {
+        expect(error.message).toBe(failureValue.message);
+        expect(d.state).toBe(State.retrying);
+      });
     });
 
     it('passes through a success', () => {
@@ -226,8 +223,10 @@ describe('DerivedLoadable', () => {
 
       f.failure(failureValue);
       expect(d.data).toBeInstanceOf(failureValue.constructor);
-      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
-      expect(d.state).toBe(State.failure);
+      expectError(d.data, Error, error => {
+        expect(error.message).toBe(failureValue.message);
+        expect(d.state).toBe(State.failure);
+      });
     });
 
     it('can transform an empty to a success', () => {
@@ -243,8 +242,10 @@ describe('DerivedLoadable', () => {
       const d = derive(f, pendingToFailure);
 
       expect(d.data).toBeInstanceOf(failureValue.constructor);
-      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
-      expect(d.state).toBe(State.failure);
+      expectError(d.data, Error, error => {
+        expect(error.message).toBe(failureValue.message);
+        expect(d.state).toBe(State.failure);
+      });
     });
 
     it('can transform a pending to a reloading', () => {
@@ -260,8 +261,10 @@ describe('DerivedLoadable', () => {
       const d = derive(f, pendingToFailure);
 
       expect(d.data).toBeInstanceOf(failureValue.constructor);
-      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
-      expect(d.state).toBe(State.retrying);
+      expectError(d.data, Error, error => {
+        expect(error.message).toBe(failureValue.message);
+        expect(d.state).toBe(State.retrying);
+      });
     });
   });
 
@@ -286,8 +289,10 @@ describe('DerivedLoadable', () => {
       const d = derive(f, options);
 
       expect(d.data).toBeInstanceOf(TypeError);
-      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
-      expect(d.state).toBe(State.failure);
+      expectError(d.data, TypeError, error => {
+        expect(error.message).toBe(failureValue.message);
+        expect(d.state).toBe(State.failure);
+      });
     });
 
     it('transforms a success', () => {
@@ -305,8 +310,10 @@ describe('DerivedLoadable', () => {
 
       f.failure(failureValue);
       expect(d.data).toBeInstanceOf(TypeError);
-      expect(ensureError(d.data) && d.data.message).toBe(failureValue.message);
-      expect(d.state).toBe(State.failure);
+      expectError(d.data, TypeError, error => {
+        expect(error.message).toBe(failureValue.message);
+        expect(d.state).toBe(State.failure);
+      });
     });
 
     it('passes through a pending', () => {
