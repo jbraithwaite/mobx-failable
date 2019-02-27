@@ -1,4 +1,4 @@
-import {action, computed, observable} from 'mobx';
+import {action, autorun, computed, observable} from 'mobx';
 
 import {accept, failureOr, successOr} from '../extensions';
 import {Future, ReadonlyFuture} from '../future';
@@ -195,5 +195,66 @@ export class Failable<T> implements Future<T> {
    */
   rescue<U = T>(f: (error: Error) => U): ReadonlyFuture<U> {
     return rescue(this, f);
+  }
+}
+
+interface Never {
+  __never: 'never';
+}
+const never: Never = new Object() as any;
+
+export namespace Failable {
+  export function all<T>(
+    values: {[Key in keyof T]: ReadonlyFuture<T[Key]>},
+  ): ReadonlyFuture<T> {
+    const result = new Failable<T>();
+    const isArray = Array.isArray(values);
+    const entries: Array<
+      [keyof T, ReadonlyFuture<T[keyof T]>]
+    > = Object.entries(values) as any;
+
+    if (entries.length === 0) {
+      return result.success((isArray ? [] : {}) as T);
+    }
+
+    autorun(() => {
+      const failureEntry = entries.find(([_, value]) => value.isFailure);
+      if (failureEntry !== undefined) {
+        const [, failure] = failureEntry;
+        const error = failure.failureOr(never);
+
+        if (error === never) {
+          throw new Error('Future should have been a failure');
+        }
+
+        result.failure(error as Error);
+      } else if (entries.some(([_, value]) => value.isPending)) {
+        result.pending();
+      } else {
+        const vals: Partial<{[Key in keyof T]: T[Key] | Never}> = {};
+        entries
+          .map(
+            ([key, value]): [keyof T, T[keyof T] | Never] => [
+              key,
+              value.successOr(never),
+            ],
+          )
+          .forEach(([key, value]) => {
+            vals[key] = value;
+          });
+
+        if (Object.values(vals).some(val => val === never)) {
+          throw new Error('Futures should all be successfull');
+        }
+
+        if (isArray) {
+          result.success(Array.from({...vals, length: entries.length}) as any);
+        } else {
+          result.success(vals as T);
+        }
+      }
+    });
+
+    return result;
   }
 }

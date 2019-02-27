@@ -316,4 +316,140 @@ describe('Failable', () => {
       expect(g.state).toBe(f.state);
     });
   });
+
+  describe('all', () => {
+    describe('failure state', () => {
+      describe('array argument', () => {
+        it('is failure when the other failable is succuessfull', () => {
+          const f = expose(Failable.all([make.success(), make.failure()]));
+          expect(f.state).toEqual(Future.State.failure);
+          expect(f.data).toEqual(failureValue);
+        });
+
+        it('is failure when one failable is pending', () => {
+          const f = expose(Failable.all([make.pending(), make.failure()]));
+          expect(f.state).toEqual(Future.State.failure);
+          expect(f.data).toEqual(failureValue);
+        });
+      });
+
+      describe('object argument', () => {
+        it('is failure when the other failable is succuessfull', () => {
+          const f = expose(
+            Failable.all({foo: make.success(), bar: make.failure()}),
+          );
+          expect(f.state).toEqual(Future.State.failure);
+          expect(f.data).toEqual(failureValue);
+        });
+
+        it('is failure when one failable is pending', () => {
+          const f = expose(
+            Failable.all({foo: make.pending(), bar: make.failure()}),
+          );
+          expect(f.state).toEqual(Future.State.failure);
+          expect(f.data).toEqual(failureValue);
+        });
+      });
+    });
+
+    describe('pending state', () => {
+      describe('array argument', () => {
+        it('is pending when one failable is pending', () => {
+          const f = expose(Failable.all([make.success(), make.pending()]));
+          expect(f.state).toEqual(Future.State.pending);
+          expect(f.data).toBeUndefined();
+        });
+
+        it('is pending when two failables are pending', () => {
+          const f = expose(Failable.all([make.pending(), make.pending()]));
+          expect(f.state).toEqual(Future.State.pending);
+          expect(f.data).toBeUndefined();
+        });
+
+        it('is pending after being successful', () => {
+          const bool = new Failable<boolean>();
+          const num = new Failable<number>();
+          const f = expose(Failable.all([bool, num]));
+
+          bool.success(false);
+          num.success(1);
+
+          expect(f.state).toEqual(Future.State.success);
+          expect(f.data).toEqual([false, 1]);
+
+          num.pending();
+
+          expect(f.state).toEqual(Future.State.pending);
+          expect(f.data).toBeUndefined();
+        });
+      });
+
+      describe('object argument', () => {
+        it('is pending when one failable is pending', () => {
+          const f = expose(
+            Failable.all({foo: make.success(), bar: make.pending()}),
+          );
+          expect(f.state).toEqual(Future.State.pending);
+          expect(f.data).toBeUndefined();
+        });
+
+        it('is pending when two failables are pending', () => {
+          const f = expose(
+            Failable.all({foo: make.pending(), bar: make.pending()}),
+          );
+          expect(f.state).toEqual(Future.State.pending);
+          expect(f.data).toBeUndefined();
+        });
+
+        it('is pending after being successful', () => {
+          const bool = new Failable<boolean>();
+          const num = new Failable<number>();
+          const f = expose(Failable.all({bool, num}));
+
+          bool.success(false);
+          num.success(1);
+
+          expect(f.state).toEqual(Future.State.success);
+          expect(f.data).toEqual({bool: false, num: 1});
+
+          num.pending();
+
+          expect(f.state).toEqual(Future.State.pending);
+          expect(f.data).toBeUndefined();
+        });
+      });
+    });
+
+    describe('success state', () => {
+      describe('array argument', () => {
+        it('is success when both failables are successfull', () => {
+          const f = expose(Failable.all([make.success(), make.success()]));
+          expect(f.state).toEqual(Future.State.success);
+          expect(f.data).toEqual([3, 3]);
+        });
+
+        it('is success passed an empty array', () => {
+          const f = expose(Failable.all([]));
+          expect(f.state).toEqual(Future.State.success);
+          expect(f.data).toEqual([]);
+        });
+      });
+
+      describe('object argument', () => {
+        it('is success when both failables are successfull', () => {
+          const f = expose(
+            Failable.all({foo: make.success(), bar: make.success()}),
+          );
+          expect(f.state).toEqual(Future.State.success);
+          expect(f.data).toEqual({foo: 3, bar: 3});
+        });
+
+        it('is success passed an empty object', () => {
+          const f = expose(Failable.all({}));
+          expect(f.state).toEqual(Future.State.success);
+          expect(f.data).toEqual({});
+        });
+      });
+    });
+  });
 });
