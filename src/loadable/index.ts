@@ -1,4 +1,4 @@
-import {action, computed, observable} from 'mobx';
+import {action, autorun, computed, observable} from 'mobx';
 
 import {accept, failureOr, successOr} from '../extensions';
 import {Future} from '../future';
@@ -377,6 +377,71 @@ export interface ReadonlyLoadable<T> {
    * @returns A derived ReadonlyFuture
    */
   rescue<U = T>(f: (error: Error) => U): ReadonlyLoadable<U>;
+}
+
+interface Never {
+  __never: 'never';
+}
+const never: Never = new Object() as any;
+
+export namespace Loadable {
+  export function all<T>(
+    values: {[Key in keyof T]: ReadonlyLoadable<T[Key]>},
+  ): ReadonlyLoadable<T> {
+    const result = new Loadable<T>();
+    const isArray = Array.isArray(values);
+    const entries: Array<
+      [keyof T, ReadonlyLoadable<T[keyof T]>]
+    > = Object.entries(values) as any;
+
+    if (entries.length === 0) {
+      return result.success((isArray ? [] : {}) as T);
+    }
+
+    autorun(() => {
+      const failureEntry = entries.find(([_, value]) => value.isFailure);
+      if (failureEntry !== undefined) {
+        const [, failure] = failureEntry;
+        const error = failure.failureOr(never);
+
+        if (error === never) {
+          throw new Error('Future should have been a failure');
+        }
+
+        result.failure(error as Error);
+      } else if (entries.some(([_, value]) => value.isPending)) {
+        result.pending();
+      } else {
+        const vals: Partial<{[Key in keyof T]: T[Key] | Never}> = {};
+        entries
+          .map(
+            ([key, value]): [keyof T, T[keyof T] | Never] => [
+              key,
+              value.successOr(never),
+            ],
+          )
+          .forEach(([key, value]) => {
+            vals[key] = value;
+          });
+
+        if (Object.values(vals).some(val => val === never)) {
+          throw new Error('Futures should all be successfull');
+        }
+
+        if (isArray) {
+          result.success(Array.from({...vals, length: entries.length}) as any);
+        } else {
+          result.success(vals as T);
+        }
+      }
+
+      if (entries.some(([_, value]) => value.isLoading)) {
+        result.pending();
+      }
+    });
+
+    return result;
+  }
 }
 
 /**

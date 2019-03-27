@@ -465,4 +465,160 @@ describe('Loadable', () => {
       expect(g.state).toBe(f.state);
     });
   });
+
+  describe('all', () => {
+    describe('failure state', () => {
+      describe('array argument', () => {
+        it('is failure when the other loadable is succuessfull', () => {
+          const f = expose(Loadable.all([make.success(), make.failure()]));
+          expect(f.state).toEqual(State.failure);
+          expect(f.data).toEqual(failureValue);
+        });
+
+        it('is retrying when one loadable is pending', () => {
+          const f = expose(Loadable.all([make.pending(), make.failure()]));
+          expect(f.state).toEqual(State.retrying);
+          expect(f.data).toEqual(failureValue);
+        });
+
+        it('is a failure when all loadable are failures', () => {
+          const f = expose(Loadable.all([make.failure(), make.failure()]));
+          expect(f.state).toEqual(State.failure);
+          expect(f.data).toEqual(failureValue);
+        });
+      });
+
+      describe('object argument', () => {
+        it('is failure when the other loadable is succuessfull', () => {
+          const f = expose(
+            Loadable.all({foo: make.success(), bar: make.failure()}),
+          );
+          expect(f.state).toEqual(State.failure);
+          expect(f.data).toEqual(failureValue);
+        });
+
+        it('is retrying when one loadable is pending', () => {
+          const f = expose(
+            Loadable.all({foo: make.pending(), bar: make.failure()}),
+          );
+          expect(f.state).toEqual(State.retrying);
+          expect(f.data).toEqual(failureValue);
+        });
+
+        it('is a failure when all loadable are failures', () => {
+          const f = expose(
+            Loadable.all({foo: make.failure(), bar: make.failure()}),
+          );
+          expect(f.state).toEqual(State.failure);
+          expect(f.data).toEqual(failureValue);
+        });
+      });
+    });
+
+    describe('pending state', () => {
+      describe('array argument', () => {
+        it('is pending when one loadable is pending', () => {
+          const f = expose(Loadable.all([make.success(), make.pending()]));
+          expect(f.state).toEqual(State.pending);
+          expect(f.data).toBeUndefined();
+        });
+
+        it('is pending when two loadables are pending', () => {
+          const f = expose(Loadable.all([make.pending(), make.pending()]));
+          expect(f.state).toEqual(State.pending);
+          expect(f.data).toBeUndefined();
+        });
+
+        it('is pending after being successful', () => {
+          const bool = new Loadable<boolean>();
+          const num = new Loadable<number>();
+          const f = expose(Loadable.all([bool, num]));
+
+          bool.success(false);
+          num.success(1);
+
+          expect(f.state).toEqual(State.success);
+          expect(f.data).toEqual([false, 1]);
+
+          num.pending();
+
+          expect(f.state).toEqual(State.reloading);
+          expect(f.data).toEqual([false, 1]);
+        });
+      });
+
+      describe('object argument', () => {
+        it('is pending when one loadable is pending', () => {
+          const f = expose(
+            Loadable.all({foo: make.success(), bar: make.pending()}),
+          );
+          expect(f.state).toEqual(State.pending);
+          expect(f.data).toBeUndefined();
+        });
+
+        it('is pending when two loadables are pending', () => {
+          const f = expose(
+            Loadable.all({foo: make.pending(), bar: make.pending()}),
+          );
+          expect(f.state).toEqual(State.pending);
+          expect(f.data).toBeUndefined();
+        });
+
+        it('is successful after being successful and then reloading', () => {
+          const bool = new Loadable<boolean>();
+          const num = new Loadable<number>();
+
+          const f = expose(Loadable.all({bool, num}));
+
+          bool.success(false);
+          num.success(1);
+
+          expect(f.state).toEqual(State.success);
+          expect(f.data).toEqual({bool: false, num: 1});
+
+          num.pending();
+
+          expect(f.state).toEqual(State.reloading);
+          expect(f.data).toEqual({bool: false, num: 1});
+
+          num.success(2);
+
+          expect(f.state).toEqual(State.success);
+          expect(f.data).toEqual({bool: false, num: 2});
+        });
+      });
+    });
+
+    describe('success state', () => {
+      describe('array argument', () => {
+        it('is success when both loadables are successfull', () => {
+          const f = expose(Loadable.all([make.success(), make.success()]));
+          expect(f.state).toEqual(State.success);
+          expect(f.data).toEqual([3, 3]);
+        });
+
+        it('is success passed an empty array', () => {
+          const f = expose(Loadable.all([]));
+          expect(f.state).toEqual(State.success);
+          expect(f.data).toEqual([]);
+        });
+      });
+
+      describe('object argument', () => {
+        it('is success when both loadables are successfull', () => {
+          const f = expose(
+            Loadable.all({foo: make.success(), bar: make.success()}),
+          );
+          expect(f.state).toEqual(State.success);
+          expect(f.data).toEqual({foo: 3, bar: 3});
+        });
+
+        it('is success passed an empty object', () => {
+          const f = expose(Loadable.all({}));
+          expect(f.state).toEqual(State.success);
+          expect(f.data).toEqual({});
+        });
+      });
+    });
+  });
 });
